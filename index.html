@@ -73,12 +73,36 @@
           <label class="block text-xs font-bold text-slate-700 mb-1">كلمة المرور</label>
           <input id="loginPass" type="password" required placeholder="••••••••" class="w-full border rounded-xl p-3 text-sm text-left" dir="ltr" />
         </div>
+        <div class="flex items-center justify-between text-xs">
+          <button type="button" onclick="openForgotPasswordModal()" class="text-sky-800 font-bold hover:underline">نسيت كلمة المرور؟</button>
+        </div>
         <div id="loginError" class="hidden text-xs text-red-600 bg-red-50 p-2.5 rounded-lg font-bold"></div>
         <button type="submit" id="loginBtn" class="w-full brand-gradient text-white font-bold py-3 rounded-xl shadow-lg">تسجيل الدخول</button>
       </form>
       <div class="mt-4 text-center">
         <button onclick="resetConfig()" class="text-xs text-slate-400 underline">تعديل إعدادات ربط السيرفر</button>
       </div>
+    </div>
+  </div>
+
+  <!-- شاشة تعيين كلمة مرور جديدة عند فتح رابط الاستعادة -->
+  <div id="recoveryScreen" class="hidden min-h-screen flex items-center justify-center p-4 brand-gradient">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+      <div class="text-center mb-5">
+        <h1 class="text-lg font-extrabold text-slate-800">تعيين كلمة مرور جديدة</h1>
+        <p class="text-xs text-slate-500 mt-1">أدخل كلمة المرور الجديدة لحسابك التنظيمي</p>
+      </div>
+      <form onsubmit="handleRecoveryPasswordUpdate(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">كلمة المرور الجديدة (6 أحرف فأكثر)</label>
+          <input id="recoveryNewPass" type="password" minlength="6" required placeholder="••••••••" class="w-full border rounded-xl p-3 text-sm text-left" dir="ltr" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">تأكيد كلمة المرور الجديدة</label>
+          <input id="recoveryConfirmPass" type="password" minlength="6" required placeholder="••••••••" class="w-full border rounded-xl p-3 text-sm text-left" dir="ltr" />
+        </div>
+        <button type="submit" class="w-full brand-gradient text-white font-bold py-3 rounded-xl shadow-lg">حفظ كلمة المرور الجديدة</button>
+      </form>
     </div>
   </div>
 
@@ -340,6 +364,34 @@
     </nav>
   </div>
 
+  <!-- نافذة نسيت كلمة المرور -->
+  <div id="forgotPasswordModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-3">
+      <h3 class="font-extrabold text-slate-800 text-sm">استعادة كلمة المرور</h3>
+      <p class="text-xs text-slate-500">سيتم إرسال رابط إعادة تعيين كلمة المرور إلى البريد الإلكتروني المسجل للحساب.</p>
+      <input id="resetEmailInput" type="email" required placeholder="name@mostaqbalwatan.org" class="w-full border rounded-xl p-2.5 text-xs text-left" dir="ltr" />
+      <div id="resetMsgBox" class="hidden text-xs p-2.5 rounded-xl font-bold"></div>
+      <div class="flex gap-2 pt-1">
+        <button type="button" onclick="sendPasswordResetEmail()" class="flex-1 brand-gradient text-white font-bold py-2.5 rounded-xl text-xs">إرسال رابط الاستعادة</button>
+        <button type="button" onclick="closeModal('forgotPasswordModal')" class="px-4 bg-slate-100 text-slate-700 font-bold py-2.5 rounded-xl text-xs">إغلاق</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- نافذة تغيير كلمة مرور حساب بواسطة صاحب الصلاحية -->
+  <div id="adminChangePassModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-3">
+      <h3 id="adminPassModalTitle" class="font-extrabold text-slate-800 text-sm">تغيير كلمة المرور</h3>
+      <p class="text-xs text-slate-500">أدخل كلمة المرور الجديدة للمستخدم (6 أحرف أو أكثر).</p>
+      <input id="adminTargetUserId" type="hidden" />
+      <input id="adminNewPasswordInput" type="password" minlength="6" required placeholder="كلمة المرور الجديدة" class="w-full border rounded-xl p-2.5 text-xs text-left" dir="ltr" />
+      <div class="flex gap-2 pt-1">
+        <button type="button" onclick="submitAdminPasswordChange()" class="flex-1 brand-gradient text-white font-bold py-2.5 rounded-xl text-xs">حفظ كلمة المرور</button>
+        <button type="button" onclick="closeModal('adminChangePassModal')" class="px-4 bg-slate-100 text-slate-700 font-bold py-2.5 rounded-xl text-xs">إلغاء</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 1. إضافة عضو -->
   <div id="memberModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-3 max-h-[90vh] overflow-y-auto">
@@ -516,7 +568,21 @@
       return;
     }
     sb = window.supabase.createClient(url, key);
+
+    sb.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('appScreen').classList.add('hidden');
+        document.getElementById('recoveryScreen').classList.remove('hidden');
+      }
+    });
+
     const { data: { session } } = await sb.auth.getSession();
+    if (window.location.hash.includes('type=recovery')) {
+      document.getElementById('recoveryScreen').classList.remove('hidden');
+      return;
+    }
+
     if (!session) {
       document.getElementById('loginScreen').classList.remove('hidden');
     } else {
@@ -538,6 +604,73 @@
     localStorage.removeItem('sb_url');
     localStorage.removeItem('sb_key');
     location.reload();
+  }
+
+  function openForgotPasswordModal() {
+    const prefilledEmail = document.getElementById('loginEmail').value.trim();
+    document.getElementById('resetEmailInput').value = prefilledEmail;
+    const msgBox = document.getElementById('resetMsgBox');
+    msgBox.classList.add('hidden');
+    msgBox.textContent = '';
+    document.getElementById('forgotPasswordModal').classList.remove('hidden');
+  }
+
+  async function sendPasswordResetEmail() {
+    const email = document.getElementById('resetEmailInput').value.trim();
+    const msgBox = document.getElementById('resetMsgBox');
+    if (!email) return alert('يرجى إدخال البريد الإلكتروني');
+
+    const redirectTo = window.location.origin + window.location.pathname;
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo });
+    msgBox.classList.remove('hidden');
+    if (error) {
+      msgBox.className = 'text-xs p-2.5 rounded-xl font-bold bg-rose-50 text-rose-700';
+      msgBox.textContent = 'تعذر إرسال الرابط: ' + error.message;
+      return;
+    }
+    msgBox.className = 'text-xs p-2.5 rounded-xl font-bold bg-emerald-50 text-emerald-700';
+    msgBox.textContent = 'تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني. افتح الرابط لتعيين كلمة مرور جديدة.';
+  }
+
+  async function handleRecoveryPasswordUpdate(e) {
+    e.preventDefault();
+    const p1 = document.getElementById('recoveryNewPass').value;
+    const p2 = document.getElementById('recoveryConfirmPass').value;
+    if (p1 !== p2) return alert('كلمتا المرور غير متطابقتين');
+    if (p1.length < 6) return alert('كلمة المرور يجب أن تكون 6 أحرف أو أكثر');
+
+    const { error } = await sb.auth.updateUser({ password: p1 });
+    if (error) return alert('تعذر تحديث كلمة المرور: ' + error.message);
+
+    alert('تم تحديث كلمة المرور بنجاح، يمكنك الآن تسجيل الدخول.');
+    history.replaceState(null, '', window.location.pathname);
+    document.getElementById('recoveryScreen').classList.add('hidden');
+    document.getElementById('loginScreen').classList.remove('hidden');
+  }
+
+  function openAdminChangePassModal(userId, fullName) {
+    document.getElementById('adminTargetUserId').value = userId;
+    document.getElementById('adminNewPasswordInput').value = '';
+    document.getElementById('adminPassModalTitle').textContent = `تغيير كلمة المرور: ${fullName}`;
+    document.getElementById('adminChangePassModal').classList.remove('hidden');
+  }
+
+  async function submitAdminPasswordChange() {
+    const targetUserId = document.getElementById('adminTargetUserId').value;
+    const newPassword = document.getElementById('adminNewPasswordInput').value;
+    if (!newPassword || newPassword.length < 6) {
+      return alert('كلمة المرور الجديدة يجب أن تكون 6 أحرف أو أكثر');
+    }
+
+    const { error } = await sb.rpc('admin_set_user_password', {
+      p_target_user_id: targetUserId,
+      p_new_password: newPassword
+    });
+
+    if (error) return alert('تعذر تغيير كلمة المرور: ' + error.message);
+
+    closeModal('adminChangePassModal');
+    alert('تم تغيير كلمة المرور بنجاح.');
   }
 
   async function handleLogin(e) {
@@ -1322,6 +1455,7 @@
       .map(u => `<div class="p-2 bg-slate-50 rounded-lg border">• <strong>${u.name}</strong> (${u.level})</div>`)
       .join('');
 
+    const canChangePasswords = DELEGATOR_ROLES.includes(currentProfile.role);
     const { data: profs } = await sb.from('profiles').select('*').in('unit_id', accessibleIds);
     document.getElementById('profilesList').innerHTML = (profs || []).map(p => {
       const uName = allUnits.find(u => u.id === p.unit_id)?.name || '';
@@ -1329,6 +1463,9 @@
       const activeBadge = p.is_active !== false
         ? `<span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">نشط</span>`
         : `<span class="text-[10px] bg-rose-100 text-rose-800 px-2 py-0.5 rounded-full font-bold">موقوف</span>`;
+      const passBtn = canChangePasswords
+        ? `<button type="button" onclick="openAdminChangePassModal('${p.id}', '${p.full_name.replace(/'/g, "\\'")}')" class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900">تغيير كلمة المرور</button>`
+        : '';
       const toggleBtn = p.id !== currentUser.id
         ? `<button type="button" onclick="toggleProfileActive('${p.id}', ${p.is_active === false})" class="text-[11px] font-bold px-2.5 py-1 rounded-lg ${p.is_active === false ? 'bg-emerald-600 text-white' : 'bg-rose-50 text-rose-600'}">${p.is_active === false ? 'تفعيل' : 'إيقاف'}</button>`
         : '';
@@ -1341,7 +1478,10 @@
             ${activeBadge}
             <div class="text-[11px] text-slate-500 mt-0.5">الوحدة: ${uName}</div>
           </div>
-          ${toggleBtn}
+          <div class="flex items-center gap-1.5">
+            ${passBtn}
+            ${toggleBtn}
+          </div>
         </div>
       `;
     }).join('');
