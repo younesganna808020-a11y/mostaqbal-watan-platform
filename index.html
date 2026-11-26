@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>منصة التنظيم الحزبي | حزب مستقبل وطن</title>
+  <link rel="manifest" href="./manifest.json" />
+  <meta name="theme-color" content="#0a2540" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { font-family: 'Cairo', sans-serif; }
+    body { background-color: #f1f5f9; }
+    .brand-gradient { background: linear-gradient(135deg, #0a2540 0%, #164e87 100%); }
+    @media print {
+      body { background: #fff !important; }
+      .no-print { display: none !important; }
+      .print-only { display: block !important; }
+      .print-sheet {
+        box-shadow: none !important;
+        border: none !important;
+        margin: 0 !important;
+        padding: 10mm !important;
+        width: 100% !important;
+      }
+      @page { size: A4 portrait; margin: 8mm; }
+    }
+  </style>
+</head>
+<body class="pb-24">
+
+  <!-- شاشة إعداد الاتصال بـ Supabase (تظهر إذا لم يتم إدخال المفاتيح) -->
+  <div id="setupScreen" class="hidden min-h-screen flex items-center justify-center p-4 brand-gradient">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+      <div class="text-center mb-5">
+        <div class="w-16 h-16 mx-auto rounded-full bg-blue-900 text-amber-400 flex items-center justify-center text-2xl font-extrabold mb-2">م و</div>
+        <h1 class="text-xl font-extrabold text-slate-800">ربط المنصة السحابية (Supabase)</h1>
+        <p class="text-xs text-slate-500 mt-1">أدخل بيانات مشروعك من Supabase (Settings &gt; API)</p>
+      </div>
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Project URL</label>
+          <input id="cfgUrl" type="url" placeholder="https://xxxx.supabase.co" class="w-full border rounded-xl p-2.5 text-sm text-left" dir="ltr" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Anon Public Key</label>
+          <input id="cfgKey" type="text" placeholder="eyJhbGciOiJIUzI1NiIs..." class="w-full border rounded-xl p-2.5 text-sm text-left" dir="ltr" />
+        </div>
+        <button onclick="saveSupabaseConfig()" class="w-full brand-gradient text-white font-bold py-3 rounded-xl shadow hover:opacity-95">حفظ الاتصال والانتقال لتسجيل الدخول</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- شاشة تسجيل الدخول -->
+  <div id="loginScreen" class="hidden min-h-screen flex items-center justify-center p-4 brand-gradient">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+      <div class="text-center mb-6">
+        <div class="w-20 h-20 mx-auto rounded-full bg-slate-900 border-4 border-amber-400 flex flex-col items-center justify-center text-white shadow mb-3">
+          <span class="text-xs text-amber-400 font-bold">حزب</span>
+          <span class="text-sm font-extrabold">مستقبل وطن</span>
+        </div>
+        <h1 class="text-xl font-extrabold text-slate-800">المنصة السحابية لإدارة التنظيم</h1>
+        <p class="text-xs text-sky-700 font-bold mt-1">« كلنا نعمل من أجل مصر »</p>
+      </div>
+      <form onsubmit="handleLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">البريد الإلكتروني التنظيمي</label>
+          <input id="loginEmail" type="email" required placeholder="name@mostaqbalwatan.org" class="w-full border rounded-xl p-3 text-sm text-left" dir="ltr" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">كلمة المرور</label>
+          <input id="loginPass" type="password" required placeholder="••••••••" class="w-full border rounded-xl p-3 text-sm text-left" dir="ltr" />
+        </div>
+        <div id="loginError" class="hidden text-xs text-red-600 bg-red-50 p-2.5 rounded-lg font-bold"></div>
+        <button type="submit" id="loginBtn" class="w-full brand-gradient text-white font-bold py-3 rounded-xl shadow-lg">تسجيل الدخول</button>
+      </form>
+      <div class="mt-4 text-center">
+        <button onclick="resetConfig()" class="text-xs text-slate-400 underline">تعديل إعدادات ربط السيرفر</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- واجهة التطبيق الرئيسية -->
+  <div id="appScreen" class="hidden">
+    <!-- الشريط العلوي -->
+    <header class="brand-gradient text-white p-4 shadow-md no-print sticky top-0 z-30">
+      <div class="max-w-5xl mx-auto flex items-center justify-between gap-2">
+        <div class="flex items-center gap-3">
+          <img id="topLogoImg" src="" alt="شعار" class="hidden w-11 h-11 rounded-full object-cover border-2 border-amber-400 bg-white" />
+          <div id="topLogoFallback" class="w-11 h-11 rounded-full bg-white text-slate-900 border-2 border-amber-400 flex items-center justify-center font-extrabold text-xs text-center leading-tight">مستقبل<br>وطن</div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 id="headerUnitName" class="font-extrabold text-base md:text-lg leading-tight">جاري التحميل...</h1>
+              <span id="headerRoleBadge" class="text-[10px] bg-amber-400 text-slate-900 font-extrabold px-2 py-0.5 rounded-full"></span>
+            </div>
+            <p id="headerBreadcrumb" class="text-[11px] text-sky-200 mt-0.5"></p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="installPwaBtn" onclick="installPWA()" class="hidden bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow">تثبيت التطبيق</button>
+          <button onclick="handleLogout()" class="bg-white/15 hover:bg-white/25 text-white text-xs font-bold px-3 py-1.5 rounded-lg">خروج</button>
+        </div>
+      </div>
+
+      <!-- فلتر النطاق الهرمي للمستويات الأعلى -->
+      <div id="scopeFilterBar" class="hidden max-w-5xl mx-auto mt-3 pt-2.5 border-t border-white/15 flex flex-wrap items-center gap-2">
+        <span class="text-xs text-sky-200 font-bold">نطاق العرض:</span>
+        <select id="activeUnitFilter" onchange="onScopeChange()" class="bg-slate-900/70 text-white border border-white/20 rounded-lg px-3 py-1 text-xs font-bold flex-1 min-w-[200px]"></select>
+      </div>
+    </header>
+
+    <!-- محتوى التبويبات -->
+    <main class="max-w-5xl mx-auto p-4">
+
+      <!-- 1. الرئيسية والإحصائيات -->
+      <section id="tab-dashboard" class="tab-section space-y-4">
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex items-center justify-between">
+          <div>
+            <p class="text-xs text-slate-500">مرحباً بك،</p>
+            <h2 id="welcomeUserName" class="text-base font-extrabold text-slate-800"></h2>
+          </div>
+          <span class="text-xs font-bold text-sky-700 bg-sky-50 px-3 py-1.5 rounded-xl">متصل سحابياً ●</span>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div class="bg-white p-4 rounded-2xl shadow-sm border-r-4 border-blue-700">
+            <p class="text-xs text-slate-500 font-bold">إجمالي الأعضاء</p>
+            <p id="statMembers" class="text-2xl font-extrabold text-slate-800 mt-1">0</p>
+          </div>
+          <div class="bg-white p-4 rounded-2xl shadow-sm border-r-4 border-emerald-600">
+            <p class="text-xs text-slate-500 font-bold">الفعاليات والحملات</p>
+            <p id="statEvents" class="text-2xl font-extrabold text-slate-800 mt-1">0</p>
+          </div>
+          <div class="bg-white p-4 rounded-2xl shadow-sm border-r-4 border-amber-500">
+            <p class="text-xs text-slate-500 font-bold">المشكلات المرصودة</p>
+            <p id="statIssues" class="text-2xl font-extrabold text-slate-800 mt-1">0</p>
+          </div>
+          <div class="bg-white p-4 rounded-2xl shadow-sm border-r-4 border-rose-600">
+            <p class="text-xs text-slate-500 font-bold">الحالات الإنسانية</p>
+            <p id="statCases" class="text-2xl font-extrabold text-slate-800 mt-1">0</p>
+          </div>
+        </div>
+
+        <!-- توزيع الأعضاء على الأمانات -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+          <h3 class="font-extrabold text-slate-800 text-sm mb-3">توزيع القوة التنظيمية على الأمانات النوعية</h3>
+          <div id="secretariatsStatsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5"></div>
+        </div>
+      </section>
+
+      <!-- 2. سجل الأعضاء والمتطوعين -->
+      <section id="tab-members" class="tab-section hidden space-y-4">
+        <div class="bg-white rounded-2xl p-4 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <h2 class="font-extrabold text-slate-800">سجل الأعضاء والمتطوعين</h2>
+            <button onclick="openMemberModal()" class="brand-gradient text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow">+ إضافة عضو / متطوع</button>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <input id="searchMemberInput" oninput="renderMembers()" type="text" placeholder="بحث بالاسم أو الهاتف أو الرقم القومي..." class="border rounded-xl p-2.5 text-xs" />
+            <select id="filterMemberSec" onchange="renderMembers()" class="border rounded-xl p-2.5 text-xs font-bold">
+              <option value="">كل الأمانات النوعية</option>
+            </select>
+            <select id="filterMemberRole" onchange="renderMembers()" class="border rounded-xl p-2.5 text-xs font-bold">
+              <option value="">كل الصفات التنظيمية</option>
+              <option>أمين شياخة</option>
+              <option>أمين تنظيم</option>
+              <option>أمين أمانة نوعية</option>
+              <option>هيئة مكتب</option>
+              <option>عضو عامل</option>
+              <option>متطوع</option>
+              <option>مندوب انتخابات</option>
+            </select>
+          </div>
+        </div>
+        <div id="membersList" class="space-y-2.5"></div>
+      </section>
+
+      <!-- 3. الفعاليات والحملات وتسجيل المشاركين -->
+      <section id="tab-events" class="tab-section hidden space-y-4">
+        <div class="bg-white rounded-2xl p-4 shadow-sm flex items-center justify-between">
+          <h2 class="font-extrabold text-slate-800">الفعاليات والحملات الميدانية</h2>
+          <button onclick="openEventModal()" class="brand-gradient text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow">+ إضافة فعالية / حملة</button>
+        </div>
+        <div id="eventsList" class="space-y-3"></div>
+      </section>
+
+      <!-- 4. المشكلات الخدمية والحالات الإنسانية -->
+      <section id="tab-issues" class="tab-section hidden space-y-4">
+        <div class="grid grid-cols-2 gap-2 bg-white p-1.5 rounded-2xl shadow-sm">
+          <button id="subBtnIssues" onclick="switchSubTab('issues')" class="py-2 rounded-xl text-xs font-extrabold brand-gradient text-white">المشكلات والشكاوى الخدمية</button>
+          <button id="subBtnCases" onclick="switchSubTab('cases')" class="py-2 rounded-xl text-xs font-extrabold text-slate-600">سجل الحالات الإنسانية</button>
+        </div>
+
+        <div id="sub-issues" class="space-y-3">
+          <div class="flex justify-end">
+            <button onclick="openIssueModal()" class="brand-gradient text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow">+ تسجيل مشكلة خدمية</button>
+          </div>
+          <div id="issuesList" class="space-y-2.5"></div>
+        </div>
+
+        <div id="sub-cases" class="hidden space-y-3">
+          <div class="flex justify-end">
+            <button onclick="openCaseModal()" class="brand-gradient text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow">+ إضافة حالة إنسانية</button>
+          </div>
+          <div id="casesList" class="space-y-2.5"></div>
+        </div>
+      </section>
+
+      <!-- 5. الكشوف والتقارير الرسمية (A4) -->
+      <section id="tab-reports" class="tab-section hidden space-y-4">
+        <div class="bg-white rounded-2xl p-4 shadow-sm space-y-3 no-print">
+          <h2 class="font-extrabold text-slate-800">استخراج الكشوف والتقارير الرسمية</h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">نوع الكشف المطلوب</label>
+              <select id="reportTypeSelect" onchange="onReportTypeChange()" class="w-full border rounded-xl p-2.5 text-xs font-bold">
+                <option value="all_members">كشف العضوية الشامل</option>
+                <option value="by_secretariat">كشف تشكيل أمانة نوعية محددة</option>
+                <option value="board_only">كشف هيئة المكتب والقيادات</option>
+                <option value="volunteers">كشف المتطوعين والمناديب</option>
+                <option value="event_attendance">كشف حضور فعالية / حملة</option>
+                <option value="issues_report">تقرير المشكلات الخدمية والحالات</option>
+                <option value="full_summary">التقرير التنظيمي الشامل المجمع</option>
+              </select>
+            </div>
+            <div id="reportSecWrap" class="hidden">
+              <label class="block text-xs font-bold text-slate-600 mb-1">اختر الأمانة النوعية (تُحدث الترويسة تلقائياً)</label>
+              <select id="reportSecSelect" onchange="buildOfficialSheet()" class="w-full border rounded-xl p-2.5 text-xs font-bold"></select>
+            </div>
+            <div id="reportEventWrap" class="hidden">
+              <label class="block text-xs font-bold text-slate-600 mb-1">اختر الفعالية</label>
+              <select id="reportEventSelect" onchange="buildOfficialSheet()" class="w-full border rounded-xl p-2.5 text-xs font-bold"></select>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-2 pt-1">
+            <button onclick="window.print()" class="brand-gradient text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow">طباعة الكشف / حفظ PDF</button>
+            <button onclick="exportMembersCSV()" class="bg-emerald-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow">تصدير Excel (CSV)</button>
+          </div>
+        </div>
+
+        <!-- ورقة الكشف الرسمي A4 -->
+        <div id="officialSheetContainer" class="bg-white rounded-2xl shadow-md p-6 border border-slate-200 print-sheet"></div>
+      </section>
+
+      <!-- 6. الإدارة والهيكل التنظيمي والصلاحيات -->
+      <section id="tab-admin" class="tab-section hidden space-y-4">
+        <!-- إعدادات الوحدة الحالية -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm space-y-3">
+          <h2 class="font-extrabold text-slate-800">إعدادات الترويسة والشعار للوحدة الحالية</h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">اسم الأمين (أمين الشياخة/القسم/المحافظة)</label>
+              <input id="editSecretaryName" type="text" class="w-full border rounded-xl p-2.5 text-xs font-bold" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">اسم أمين التنظيم</label>
+              <input id="editOrgSecretaryName" type="text" class="w-full border rounded-xl p-2.5 text-xs font-bold" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">رابط أو رفع شعار الوحدة (اختياري)</label>
+              <input id="uploadLogoInput" type="file" accept="image/*" onchange="handleLogoUpload(event)" class="w-full border rounded-xl p-2 text-xs" />
+            </div>
+          </div>
+          <button onclick="saveUnitSettings()" class="brand-gradient text-white text-xs font-bold px-4 py-2 rounded-xl">حفظ بيانات الترويسة والتوقيعات</button>
+        </div>
+
+        <!-- إضافة وحدة تنظيمية تابعة (محافظة / قسم / شياخة) -->
+        <div id="adminUnitsCard" class="bg-white rounded-2xl p-4 shadow-sm space-y-3">
+          <h2 class="font-extrabold text-slate-800">إضافة وحدة تنظيمية فرعية (محافظة / قسم / شياخة)</h2>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-2.5">
+            <input id="newUnitName" type="text" placeholder="اسم الوحدة (مثلاً: شياخة البيطاش)" class="border rounded-xl p-2.5 text-xs" />
+            <select id="newUnitLevel" class="border rounded-xl p-2.5 text-xs font-bold">
+              <option value="governorate">أمانة محافظة</option>
+              <option value="district">أمانة قسم / مركز</option>
+              <option value="sheyakha" selected>شياخة / وحدة حزبية</option>
+            </select>
+            <select id="newUnitParent" class="border rounded-xl p-2.5 text-xs font-bold"></select>
+            <button onclick="createSubUnit()" class="brand-gradient text-white text-xs font-bold py-2.5 rounded-xl">+ إنشاء الوحدة</button>
+          </div>
+          <div id="unitsTreeList" class="text-xs text-slate-600 space-y-1 pt-2"></div>
+        </div>
+
+        <!-- إدارة حسابات المستخدمين والصلاحيات -->
+        <div id="adminUsersCard" class="bg-white rounded-2xl p-4 shadow-sm space-y-3">
+          <h2 class="font-extrabold text-slate-800">إدارة صلاحيات الفريق والمستخدمين</h2>
+          <p class="text-xs text-slate-500">لإضافة مستخدم جديد: أنشئ حسابه أولاً من (Supabase &gt; Authentication &gt; Users) ثم انسخ الـ User UID هنا لتحديد وحدته وصلاحيته.</p>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+            <input id="profUid" type="text" placeholder="User UID من Supabase Auth" class="border rounded-xl p-2.5 text-xs text-left" dir="ltr" />
+            <input id="profName" type="text" placeholder="الاسم الكامل للمسؤول" class="border rounded-xl p-2.5 text-xs" />
+            <select id="profRole" onchange="toggleProfSecSelect()" class="border rounded-xl p-2.5 text-xs font-bold">
+              <option value="sheyakha_admin">أمين / أمين تنظيم شياخة</option>
+              <option value="secretariat_admin">أمين أمانة نوعية</option>
+              <option value="data_entry">معاون ميداني / مدخل بيانات</option>
+              <option value="district_admin">أمين / أمين تنظيم قسم أو مركز</option>
+              <option value="gov_admin">أمين / أمين تنظيم محافظة</option>
+              <option value="super_admin">أمانة مركزية / مدير عام</option>
+            </select>
+            <select id="profUnit" class="border rounded-xl p-2.5 text-xs font-bold"></select>
+            <select id="profSec" class="hidden border rounded-xl p-2.5 text-xs font-bold"></select>
+            <button onclick="saveUserProfile()" class="brand-gradient text-white text-xs font-bold py-2.5 rounded-xl">حفظ وتفعيل الصلاحية</button>
+          </div>
+          <div id="profilesList" class="space-y-2 pt-2"></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- شريط التنقل السفلي -->
+    <nav class="fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 shadow-lg no-print z-30">
+      <div class="max-w-5xl mx-auto grid grid-cols-6 text-center py-2 text-[11px] font-bold text-slate-500">
+        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn text-blue-900 flex flex-col items-center gap-0.5"><span>📊</span><span>الرئيسية</span></button>
+        <button onclick="switchTab('members')" id="nav-members" class="nav-btn flex flex-col items-center gap-0.5"><span>👥</span><span>الأعضاء</span></button>
+        <button onclick="switchTab('events')" id="nav-events" class="nav-btn flex flex-col items-center gap-0.5"><span>🚩</span><span>الفعاليات</span></button>
+        <button onclick="switchTab('issues')" id="nav-issues" class="nav-btn flex flex-col items-center gap-0.5"><span>📋</span><span>المشكلات</span></button>
+        <button onclick="switchTab('reports')" id="nav-reports" class="nav-btn flex flex-col items-center gap-0.5"><span>🖨️</span><span>الكشوف</span></button>
+        <button onclick="switchTab('admin')" id="nav-admin" class="nav-btn flex flex-col items-center gap-0.5"><span>⚙️</span><span>الإدارة</span></button>
+      </div>
+    </nav>
+  </div>
+
+  <!-- النوافذ المنبثقة (Modals) -->
+  <!-- 1. إضافة / تعديل عضو -->
+  <div id="memberModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-3 max-h-[90vh] overflow-y-auto">
+      <h3 class="font-extrabold text-slate-800">بيانات العضو / المتطوع</h3>
+      <input type="hidden" id="mId" />
+      <input id="mName" type="text" placeholder="الاسم الرباعي *" class="w-full border rounded-xl p-2.5 text-xs" />
+      <input id="mPhone" type="tel" placeholder="رقم الهاتف *" class="w-full border rounded-xl p-2.5 text-xs" />
+      <input id="mNid" type="text" maxlength="14" placeholder="الرقم القومي (14 رقم)" class="w-full border rounded-xl p-2.5 text-xs" />
+      <select id="mSec" class="w-full border rounded-xl p-2.5 text-xs font-bold"></select>
+      <select id="mRole" class="w-full border rounded-xl p-2.5 text-xs font-bold">
+        <option>عضو عامل</option>
+        <option>أمين شياخة</option>
+        <option>أمين تنظيم</option>
+        <option>أمين أمانة نوعية</option>
+        <option>هيئة مكتب</option>
+        <option>متطوع</option>
+        <option>مندوب انتخابات</option>
+      </select>
+      <input id="mZone" type="text" placeholder="المربع السكني / المنطقة" class="w-full border rounded-xl p-2.5 text-xs" />
+      <input id="mMemNo" type="text" placeholder="رقم العضوية / الكارنيه (إن وجد)" class="w-full border rounded-xl p-2.5 text-xs" />
+      <div class="flex gap-2 pt-2">
+        <button onclick="saveMember()" class="flex-1 brand-gradient text-white font-bold py-2.5 rounded-xl text-xs">حفظ</button>
+        <button onclick="closeModal('memberModal')" class="px-4 bg-slate-100 text-slate-700 font-bold py-2.5 rounded-xl text-xs">إلغاء</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. إضافة فعالية -->
+  <div id="eventModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-3">
+      <h3 class="font-extrabold text-slate-800">إضافة فعالية أو حملة</h3>
+      <input id="eTitle" type="text" placeholder="عنوان الفعالية / الحملة *" class="w-full border rounded-xl p-2.5 text-xs" />
+      <select id="eType" class="w-full border rounded-xl p-2.5 text-xs font-bold">
+        <option>حملة ميدانية</option>
+        <option>قافلة طبية / خدمية</option>
+        <option>مبادرة مجتمعية</option>
+        <option>ندوة تثقيفية</option>
+        <option>اجتماع تنظيمي</option>
+      </select>
+      <select id="eSec" class="w-full border rounded-xl p-2.5 text-xs font-bold"></select>
+      <input id="eDate" type="date" class="w-full border rounded-xl p-2.5 text-xs" />
+      <input id="eLocation" type="text" placeholder="مكان التنفيذ" class="w-full border rounded-xl p-2.5 text-xs" />
+      <textarea id="eDesc" rows="2" placeholder="وصف مختصر..." class="w-full border rounded-xl p-2.5 text-xs"></textarea>
+      <div class="flex gap-2 pt-2">
+        <button onclick="saveEvent()" class="flex-1 brand-gradient text-white font-bold py-2.5 rounded-xl text-xs">حفظ الفعالية</button>
+        <button onclick="closeModal('eventModal')" class="px-4 bg-slate-100 text-slate-700 font-bold py-2.5 rounded-xl text-xs">إلغاء</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. تسجيل المشاركين في فعالية -->
+  <div id="attendeesModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-5 space-y-3 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between">
+        <h3 id="attModalTitle" class="font-extrabold text-slate-800 text-sm">المشاركون في الفعالية</h3>
+        <button onclick="closeModal('attendeesModal')" class="text-slate-400 font-bold">✕</button>
+      </div>
+      <div class="bg-slate-50 p-3 rounded-xl space-y-2">
+        <p class="text-xs font-bold text-slate-700">إضافة من سجل الأعضاء:</p>
+        <div class="flex gap-2">
+          <select id="attMemberSelect" class="flex-1 border rounded-xl p-2 text-xs font-bold bg-white"></select>
+          <button onclick="addRegisteredAttendee()" class="brand-gradient text-white text-xs font-bold px-3 rounded-xl">إضافة</button>
+        </div>
+        <p class="text-xs font-bold text-slate-700 pt-1">أو إضافة مشارك / ضيف خارجي:</p>
+        <div class="flex gap-2">
+          <input id="attGuestName" type="text" placeholder="الاسم" class="flex-1 border rounded-xl p-2 text-xs bg-white" />
+          <input id="attGuestPhone" type="tel" placeholder="الهاتف" class="w-28 border rounded-xl p-2 text-xs bg-white" />
+          <button onclick="addGuestAttendee()" class="bg-emerald-600 text-white text-xs font-bold px-3 rounded-xl">إضافة</button>
+        </div>
+      </div>
+      <div id="attendeesList" class="space-y-1.5"></div>
+    </div>
+  </div>
+
+  <!-- 4. إضافة مشكلة خدمية -->
+  <div id="issueModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-3">
+      <h3 class="font-extrabold text-slate-800">تسجيل مشكلة خدمية</h3>
+      <input id="iTitle" type="text" placeholder="عنوان المشكلة *" class="w-full border rounded-xl p-2.5 text-xs" />
+      <select id="iCat" class="w-full border rounded-xl p-2.5 text-xs font-bold">
+        <option>مرافق وصرف صحي</option>
+        <option>كهرباء وإنارة</option>
+        <option>طرق ورصف</option>
+        <option>صحة</option>
+        <option>تعليم</option>
+        <option>تموين</option>
+        <option>أخرى</option>
+      </select>
+      <input id="iZone" type="text" placeholder="الموقع / الشارع" class="w-full border rounded-xl p-2.5 text-xs" />
+      <input id="iAuth" type="text" placeholder="الجهة المختصة (الحي، شركة المياه...)" class="w-full border rounded-xl p-2.5 text-xs" />
+      <textarea id="iDetails" rows="2" placeholder="تفاصيل المشكلة..." class="w-full border rounded-xl p-2.5 text-xs"></textarea>
+      <div class="flex gap-2 pt-2">
+        <button onclick="saveIssue()" class="flex-1 brand-gradient text-white font-bold py-2.5 rounded-xl text-xs">حفظ</button>
+        <button onclick="closeModal('issueModal')" class="px-4 bg-slate-100 text-slate-700 font-bold py-2.5 rounded-xl text-xs">إلغاء</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. إضافة حالة إنسانية -->
+  <div id="caseModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-3">
+      <h3 class="font-extrabold text-slate-800">إضافة حالة إنسانية</h3>
+      <input id="cName" type="text" placeholder="اسم المستفيد *" class="w-full border rounded-xl p-2.5 text-xs" />
+      <input id="cPhone" type="tel" placeholder="رقم الهاتف" class="w-full border rounded-xl p-2.5 text-xs" />
+      <input id="cNid" type="text" maxlength="14" placeholder="الرقم القومي" class="w-full border rounded-xl p-2.5 text-xs" />
+      <select id="cType" class="w-full border rounded-xl p-2.5 text-xs font-bold">
+        <option>علاج ودواء</option>
+        <option>دعم غذائي ومساعدات</option>
+        <option>جهاز عرائس</option>
+        <option>مصروفات دراسية</option>
+        <option>تجهيز سكن</option>
+        <option>أخرى</option>
+      </select>
+      <input id="cZone" type="text" placeholder="العنوان / المربع" class="w-full border rounded-xl p-2.5 text-xs" />
+      <textarea id="cNotes" rows="2" placeholder="ملاحظات الحالة..." class="w-full border rounded-xl p-2.5 text-xs"></textarea>
+      <div class="flex gap-2 pt-2">
+        <button onclick="saveCase()" class="flex-1 brand-gradient text-white font-bold py-2.5 rounded-xl text-xs">حفظ</button>
+        <button onclick="closeModal('caseModal')" class="px-4 bg-slate-100 text-slate-700 font-bold py-2.5 rounded-xl text-xs">إلغاء</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // يمكنك وضع مفاتيح مشروعك مباشرة هنا لتعمل تلقائياً لجميع المستخدمين:
+  const DEFAULT_SUPABASE_URL = ""; 
+  const DEFAULT_SUPABASE_KEY = "";
+
+  let sb = null;
+  let currentUser = null;
+  let currentProfile = null;
+  let allUnits = [];
+  let secretariats = [];
+  let selectedUnitId = null;
+  let membersData = [];
+  let eventsData = [];
+  let issuesData = [];
+  let casesData = [];
+  let activeEventId = null;
+  let deferredPrompt = null;
+
+  const ROLE_LABELS = {
+    super_admin: 'الأمانة المركزية',
+    gov_admin: 'أمانة المحافظة',
+    district_admin: 'أمانة القسم / المركز',
+    sheyakha_admin: 'أمانة الشياخة',
+    secretariat_admin: 'أمين أمانة نوعية',
+    data_entry: 'معاون ميداني'
+  };
+
+  // تسجيل Service Worker للتثبيت على الهاتف
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  }
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    document.getElementById('installPwaBtn')?.classList.remove('hidden');
+  });
+  function installPWA() {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt = null;
+    document.getElementById('installPwaBtn')?.classList.add('hidden');
+  }
+
+  // التهيئة الأولية
+  window.addEventListener('DOMContentLoaded', async () => {
+    const url = DEFAULT_SUPABASE_URL || localStorage.getItem('sb_url');
+    const key = DEFAULT_SUPABASE_KEY || localStorage.getItem('sb_key');
+    if (!url || !key) {
+      document.getElementById('setupScreen').classList.remove('hidden');
+      return;
+    }
+    sb = window.supabase.createClient(url, key);
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) {
+      document.getElementById('loginScreen').classList.remove('hidden');
+    } else {
+      currentUser = session.user;
+      await initApp();
+    }
+  });
+
+  function saveSupabaseConfig() {
+    const url = document.getElementById('cfgUrl').value.trim();
+    const key = document.getElementById('cfgKey').value.trim();
+    if (!url || !key) return alert('يرجى إدخال الرابط والمفتاح');
+    localStorage.setItem('sb_url', url);
+    localStorage.setItem('sb_key', key);
+    location.reload();
+  }
+
+  function resetConfig() {
+    localStorage.removeItem('sb_url');
+    localStorage.removeItem('sb_key');
+    location.reload();
+  }
+
+  async function handleLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPass').value;
+    const errEl = document.getElementById('loginError');
+    errEl.classList.add('hidden');
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) {
+      errEl.textContent = 'خطأ في الدخول: تأكد من البريد وكلمة المرور';
+      errEl.classList.remove('hidden');
+      return;
+    }
+    currentUser = data.user;
+    document.getElementById('loginScreen').classList.add('hidden');
+    await initApp();
+  }
+
+  async function handleLogout() {
+    await sb.auth.signOut();
+    location.reload();
+  }
+
+  async function initApp() {
+    const { data: prof, error } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
+    if (error || !prof) {
+      alert('حسابك مسجل في المصادقة ولكن لم يتم ربطه بوحدة تنظيمية في جدول profiles بعد.');
+      return;
+    }
+    currentProfile = prof;
+
+    const [unitsRes, secRes] = await Promise.all([
+      sb.from('org_units').select('*').order('created_at'),
+      sb.from('secretariats').select('*').order('sort_order')
+    ]);
+    allUnits = unitsRes.data || [];
+    secretariats = secRes.data || [];
+
+    populateSecretariatDropdowns();
+    setupHierarchyFilter();
+
+    document.getElementById('appScreen').classList.remove('hidden');
+    document.getElementById('welcomeUserName').textContent = `${prof.full_name} (${ROLE_LABELS[prof.role] || prof.role})`;
+    document.getElementById('headerRoleBadge').textContent = ROLE_LABELS[prof.role] || '';
+
+    await loadScopeData();
+  }
+
+  function getDescendantUnitIds(rootId) {
+    const ids = [rootId];
+    const children = allUnits.filter(u => u.parent_id === rootId);
+    children.forEach(c => ids.push(...getDescendantUnitIds(c.id)));
+    return ids;
+  }
+
+  function getUnitChain(unitId) {
+    const chain = [];
+    let curr = allUnits.find(u => u.id === unitId);
+    while (curr) {
+      chain.unshift(curr);
+      curr = allUnits.find(u => u.id === curr.parent_id);
+    }
+    return chain;
+  }
+
+  function setupHierarchyFilter() {
+    const accessibleIds = currentProfile.role === 'super_admin'
+      ? allUnits.map(u => u.id)
+      : getDescendantUnitIds(currentProfile.unit_id);
+
+    const accessibleUnits = allUnits.filter(u => accessibleIds.includes(u.id));
+    selectedUnitId = currentProfile.unit_id;
+
+    const filterSelect = document.getElementById('activeUnitFilter');
+    filterSelect.innerHTML = accessibleUnits.map(u => `<option value="${u.id}">${u.name}</option>`).join('');
+    filterSelect.value = selectedUnitId;
+
+    if (accessibleUnits.length > 1) {
+      document.getElementById('scopeFilterBar').classList.remove('hidden');
+    }
+
+    // تعبئة قوائم الإدارة
+    document.getElementById('newUnitParent').innerHTML = accessibleUnits.map(u => `<option value="${u.id}">${u.name}</option>`).join('');
+    document.getElementById('profUnit').innerHTML = accessibleUnits.map(u => `<option value="${u.id}">${u.name}</option>`).join('');
+
+    if (currentProfile.role === 'data_entry' || currentProfile.role === 'secretariat_admin') {
+      document.getElementById('adminUnitsCard').classList.add('hidden');
+      document.getElementById('adminUsersCard').classList.add('hidden');
+    }
+  }
+
+  async function onScopeChange() {
+    selectedUnitId = document.getElementById('activeUnitFilter').value;
+    await loadScopeData();
+  }
+
+  async function loadScopeData() {
+    const unit = allUnits.find(u => u.id === selectedUnitId);
+    const chain = getUnitChain(selectedUnitId);
+
+    document.getElementById('headerUnitName').textContent = unit ? unit.name : '';
+    document.getElementById('headerBreadcrumb').textContent = chain.map(c => c.name).join(' / ');
+
+    if (unit?.logo_url) {
+      document.getElementById('topLogoImg').src = unit.logo_url;
+      document.getElementById('topLogoImg').classList.remove('hidden');
+      document.getElementById('topLogoFallback').classList.add('hidden');
+    } else {
+      document.getElementById('topLogoImg').classList.add('hidden');
+      document.getElementById('topLogoFallback').classList.remove('hidden');
+    }
+
+    document.getElementById('editSecretaryName').value = unit?.secretary_name || '';
+    document.getElementById('editOrgSecretaryName').value = unit?.org_secretary_name || '';
+
+    const targetIds = getDescendantUnitIds(selectedUnitId);
+
+    const [mRes, eRes, iRes, cRes] = await Promise.all([
+      sb.from('members').select('*').in('unit_id', targetIds).order('created_at', { ascending: false }),
+      sb.from('events').select('*, event_attendees(*)').in('unit_id', targetIds).order('event_date', { ascending: false }),
+      sb.from('issues').select('*').in('unit_id', targetIds).order('created_at', { ascending: false }),
+      sb.from('humanitarian_cases').select('*').in('unit_id', targetIds).order('created_at', { ascending: false })
+    ]);
+
+    membersData = mRes.data || [];
+    eventsData = eRes.data || [];
+    issuesData = iRes.data || [];
+    casesData = cRes.data || [];
+
+    renderDashboard();
+    renderMembers();
+    renderEvents();
+    renderIssuesAndCases();
+    renderAdminLists();
+    buildOfficialSheet();
+  }
+
+  function populateSecretariatDropdowns() {
+    const opts = secretariats.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+    document.getElementById('filterMemberSec').innerHTML = `<option value="">كل الأمانات النوعية</option>` + opts;
+    document.getElementById('mSec').innerHTML = opts;
+    document.getElementById('eSec').innerHTML = opts;
+    document.getElementById('reportSecSelect').innerHTML = opts;
+    document.getElementById('profSec').innerHTML = opts;
+  }
+
+  function renderDashboard() {
+    document.getElementById('statMembers').textContent = membersData.length;
+    document.getElementById('statEvents').textContent = eventsData.length;
+    document.getElementById('statIssues').textContent = issuesData.length;
+    document.getElementById('statCases').textContent = casesData.length;
+
+    const grid = document.getElementById('secretariatsStatsGrid');
+    grid.innerHTML = secretariats.map(s => {
+      const count = membersData.filter(m => m.secretariat_name === s.name).length;
+      return `
+        <div class="border border-slate-100 bg-slate-50 rounded-xl p-3 flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-700">${s.name}</span>
+          <span class="bg-blue-900 text-white text-xs font-extrabold px-2.5 py-0.5 rounded-full">${count}</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderMembers() {
+    const q = document.getElementById('searchMemberInput').value.trim();
+    const sec = document.getElementById('filterMemberSec').value;
+    const role = document.getElementById('filterMemberRole').value;
+
+    const filtered = membersData.filter(m => {
+      const matchQ = !q || m.full_name.includes(q) || (m.phone && m.phone.includes(q)) || (m.national_id && m.national_id.includes(q));
+      const matchSec = !sec || m.secretariat_name === sec;
+      const matchRole = !role || m.org_role === role;
+      return matchQ && matchSec && matchRole;
+    });
+
+    const list = document.getElementById('membersList');
+    if (!filtered.length) {
+      list.innerHTML = `<div class="bg-white p-6 rounded-2xl text-center text-xs text-slate-400">لا توجد سجلات مطابقة</div>`;
+      return;
+    }
+
+    list.innerHTML = filtered.map(m => {
+      const unitName = allUnits.find(u => u.id === m.unit_id)?.name || '';
+      return `
+        <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between gap-2">
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h4 class="font-extrabold text-sm text-slate-800">${m.full_name}</h4>
+              <span class="text-[10px] bg-sky-100 text-sky-900 font-bold px-2 py-0.5 rounded-full">${m.org_role}</span>
+              <span class="text-[10px] bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-full">${m.secretariat_name}</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">📞 ${m.phone} ${m.zone ? `| 📍 ${m.zone}` : ''} | 🏢 ${unitName}</p>
+          </div>
+          <button onclick="deleteMember('${m.id}')" class="text-rose-500 text-xs font-bold px-2 py-1 hover:bg-rose-50 rounded-lg">حذف</button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function openMemberModal() {
+    document.getElementById('mId').value = '';
+    document.getElementById('mName').value = '';
+    document.getElementById('mPhone').value = '';
+    document.getElementById('mNid').value = '';
+    document.getElementById('mZone').value = '';
+    document.getElementById('mMemNo').value = '';
+    if (currentProfile.role === 'secretariat_admin' && currentProfile.secretariat_name) {
+      document.getElementById('mSec').value = currentProfile.secretariat_name;
+    }
+    document.getElementById('memberModal').classList.remove('hidden');
+  }
+
+  async function saveMember() {
+    const payload = {
+      unit_id: selectedUnitId,
+      full_name: document.getElementById('mName').value.trim(),
+      phone: document.getElementById('mPhone').value.trim(),
+      national_id: document.getElementById('mNid').value.trim(),
+      secretariat_name: document.getElementById('mSec').value,
+      org_role: document.getElementById('mRole').value,
+      zone: document.getElementById('mZone').value.trim(),
+      membership_no: document.getElementById('mMemNo').value.trim(),
+      created_by: currentUser.id
+    };
+    if (!payload.full_name || !payload.phone) return alert('الاسم ورقم الهاتف مطلوبان');
+    const { error } = await sb.from('members').insert(payload);
+    if (error) return alert('حدث خطأ أثناء الحفظ: ' + error.message);
+    closeModal('memberModal');
+    await loadScopeData();
+  }
+
+  async function deleteMember(id) {
+    if (!confirm('تأكيد حذف العضو؟')) return;
+    await sb.from('members').delete().eq('id', id);
+    await loadScopeData();
+  }
+
+  // الفعاليات
+  function renderEvents() {
+    const list = document.getElementById('eventsList');
+    document.getElementById('reportEventSelect').innerHTML = eventsData.map(e => `<option value="${e.id}">${e.title} (${e.event_date})</option>`).join('');
+
+    if (!eventsData.length) {
+      list.innerHTML = `<div class="bg-white p-6 rounded-2xl text-center text-xs text-slate-400">لم يتم تسجيل فعاليات بعد</div>`;
+      return;
+    }
+    list.innerHTML = eventsData.map(e => {
+      const count = e.event_attendees?.length || 0;
+      return `
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 space-y-2">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <span class="text-[10px] bg-blue-100 text-blue-900 font-bold px-2 py-0.5 rounded-full">${e.event_type}</span>
+              <span class="text-[10px] bg-slate-100 text-slate-700 font-bold px-2 py-0.5 rounded-full">${e.secretariat_name}</span>
+              <h4 class="font-extrabold text-sm text-slate-800 mt-1">${e.title}</h4>
+              <p class="text-xs text-slate-500">📅 ${e.event_date} ${e.location ? `| 📍 ${e.location}` : ''}</p>
+            </div>
+            <span class="bg-emerald-50 text-emerald-700 font-extrabold text-xs px-3 py-1 rounded-xl">الحضور: ${count}</span>
+          </div>
+          <div class="flex gap-2 pt-1">
+            <button onclick="openAttendeesModal('${e.id}')" class="brand-gradient text-white text-xs font-bold px-3 py-1.5 rounded-xl">تسجيل المشاركين (${count})</button>
+            <button onclick="deleteEvent('${e.id}')" class="text-rose-500 text-xs font-bold px-2">حذف</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function openEventModal() {
+    document.getElementById('eTitle').value = '';
+    document.getElementById('eDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('eLocation').value = '';
+    document.getElementById('eDesc').value = '';
+    document.getElementById('eventModal').classList.remove('hidden');
+  }
+
+  async function saveEvent() {
+    const payload = {
+      unit_id: selectedUnitId,
+      title: document.getElementById('eTitle').value.trim(),
+      event_type: document.getElementById('eType').value,
+      secretariat_name: document.getElementById('eSec').value,
+      event_date: document.getElementById('eDate').value,
+      location: document.getElementById('eLocation').value.trim(),
+      description: document.getElementById('eDesc').value.trim(),
+      created_by: currentUser.id
+    };
+    if (!payload.title || !payload.event_date) return alert('عنوان الفعالية والتاريخ مطلوبان');
+    const { error } = await sb.from('events').insert(payload);
+    if (error) return alert(error.message);
+    closeModal('eventModal');
+    await loadScopeData();
+  }
+
+  async function deleteEvent(id) {
+    if (!confirm('حذف الفعالية؟')) return;
+    await sb.from('events').delete().eq('id', id);
+    await loadScopeData();
+  }
+
+  function openAttendeesModal(eventId) {
+    activeEventId = eventId;
+    const ev = eventsData.find(x => x.id === eventId);
+    document.getElementById('attModalTitle').textContent = `مشاركو: ${ev.title}`;
+    document.getElementById('attMemberSelect').innerHTML = membersData.map(m => `<option value="${m.id}">${m.full_name} (${m.secretariat_name})</option>`).join('');
+    renderAttendeesList(ev);
+    document.getElementById('attendeesModal').classList.remove('hidden');
+  }
+
+  function renderAttendeesList(ev) {
+    const list = document.getElementById('attendeesList');
+    const items = ev.event_attendees || [];
+    if (!items.length) {
+      list.innerHTML = `<p class="text-xs text-slate-400 text-center py-3">لم يتم تسجيل مشاركين بعد</p>`;
+      return;
+    }
+    list.innerHTML = items.map(a => {
+      const m = membersData.find(x => x.id === a.member_id);
+      const name = m ? m.full_name : a.guest_name;
+      const phone = m ? m.phone : (a.guest_phone || '');
+      return `
+        <div class="border rounded-xl p-2.5 flex items-center justify-between text-xs">
+          <span><strong>${name}</strong> ${phone ? `- ${phone}` : ''}</span>
+          <button onclick="removeAttendee('${a.id}')" class="text-rose-600 font-bold">إزالة</button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function addRegisteredAttendee() {
+    const member_id = document.getElementById('attMemberSelect').value;
+    if (!member_id) return;
+    await sb.from('event_attendees').insert({ event_id: activeEventId, member_id });
+    await loadScopeData();
+    renderAttendeesList(eventsData.find(x => x.id === activeEventId));
+  }
+
+  async function addGuestAttendee() {
+    const guest_name = document.getElementById('attGuestName').value.trim();
+    const guest_phone = document.getElementById('attGuestPhone').value.trim();
+    if (!guest_name) return;
+    await sb.from('event_attendees').insert({ event_id: activeEventId, guest_name, guest_phone });
+    document.getElementById('attGuestName').value = '';
+    document.getElementById('attGuestPhone').value = '';
+    await loadScopeData();
+    renderAttendeesList(eventsData.find(x => x.id === activeEventId));
+  }
+
+  async function removeAttendee(attId) {
+    await sb.from('event_attendees').delete().eq('id', attId);
+    await loadScopeData();
+    renderAttendeesList(eventsData.find(x => x.id === activeEventId));
+  }
+
+  // المشكلات والحالات
+  function switchSubTab(type) {
+    document.getElementById('sub-issues').classList.toggle('hidden', type !== 'issues');
+    document.getElementById('sub-cases').classList.toggle('hidden', type !== 'cases');
+    document.getElementById('subBtnIssues').className = type === 'issues' ? 'py-2 rounded-xl text-xs font-extrabold brand-gradient text-white' : 'py-2 rounded-xl text-xs font-extrabold text-slate-600';
+    document.getElementById('subBtnCases').className = type === 'cases' ? 'py-2 rounded-xl text-xs font-extrabold brand-gradient text-white' : 'py-2 rounded-xl text-xs font-extrabold text-slate-600';
+  }
+
+  function renderIssuesAndCases() {
+    document.getElementById('issuesList').innerHTML = issuesData.length ? issuesData.map(i => `
+      <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between gap-2">
+        <div>
+          <span class="text-[10px] bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-full">${i.category}</span>
+          <h4 class="font-extrabold text-sm text-slate-800 mt-1">${i.title}</h4>
+          <p class="text-xs text-slate-500">${i.zone || ''} ${i.target_authority ? `| الجهة: ${i.target_authority}` : ''}</p>
+        </div>
+        <select onchange="updateIssueStatus('${i.id}', this.value)" class="border rounded-xl p-1.5 text-xs font-bold bg-slate-50">
+          <option ${i.status==='جديدة'?'selected':''}>جديدة</option>
+          <option ${i.status==='قيد المتابعة'?'selected':''}>قيد المتابعة</option>
+          <option ${i.status==='تم الحل'?'selected':''}>تم الحل</option>
+        </select>
+      </div>
+    `).join('') : `<div class="bg-white p-6 rounded-2xl text-center text-xs text-slate-400">لا توجد مشكلات مسجلة</div>`;
+
+    document.getElementById('casesList').innerHTML = casesData.length ? casesData.map(c => `
+      <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between gap-2">
+        <div>
+          <span class="text-[10px] bg-rose-100 text-rose-900 font-bold px-2 py-0.5 rounded-full">${c.need_type}</span>
+          <h4 class="font-extrabold text-sm text-slate-800 mt-1">${c.beneficiary_name}</h4>
+          <p class="text-xs text-slate-500">📞 ${c.phone || '-'} | 📍 ${c.zone || '-'}</p>
+        </div>
+        <select onchange="updateCaseStatus('${c.id}', this.value)" class="border rounded-xl p-1.5 text-xs font-bold bg-slate-50">
+          <option ${c.status==='قيد الدراسة'?'selected':''}>قيد الدراسة</option>
+          <option ${c.status==='تم التقديم'?'selected':''}>تم التقديم</option>
+          <option ${c.status==='مكتملة'?'selected':''}>مكتملة</option>
+        </select>
+      </div>
+    `).join('') : `<div class="bg-white p-6 rounded-2xl text-center text-xs text-slate-400">لا توجد حالات إنسانية مسجلة</div>`;
+  }
+
+  function openIssueModal() { document.getElementById('issueModal').classList.remove('hidden'); }
+  async function saveIssue() {
+    const title = document.getElementById('iTitle').value.trim();
+    if (!title) return;
+    await sb.from('issues').insert({
+      unit_id: selectedUnitId,
+      title,
+      category: document.getElementById('iCat').value,
+      zone: document.getElementById('iZone').value.trim(),
+      target_authority: document.getElementById('iAuth').value.trim(),
+      details: document.getElementById('iDetails').value.trim(),
+      created_by: currentUser.id
+    });
+    closeModal('issueModal');
+    await loadScopeData();
+  }
+  async function updateIssueStatus(id, status) {
+    await sb.from('issues').update({ status }).eq('id', id);
+  }
+
+  function openCaseModal() { document.getElementById('caseModal').classList.remove('hidden'); }
+  async function saveCase() {
+    const beneficiary_name = document.getElementById('cName').value.trim();
+    if (!beneficiary_name) return;
+    await sb.from('humanitarian_cases').insert({
+      unit_id: selectedUnitId,
+      beneficiary_name,
+      phone: document.getElementById('cPhone').value.trim(),
+      national_id: document.getElementById('cNid').value.trim(),
+      need_type: document.getElementById('cType').value,
+      zone: document.getElementById('cZone').value.trim(),
+      notes: document.getElementById('cNotes').value.trim(),
+      created_by: currentUser.id
+    });
+    closeModal('caseModal');
+    await loadScopeData();
+  }
+  async function updateCaseStatus(id, status) {
+    await sb.from('humanitarian_cases').update({ status }).eq('id', id);
+  }
+
+  // الكشوف الرسمية والترويسة الديناميكية
+  function onReportTypeChange() {
+    const type = document.getElementById('reportTypeSelect').value;
+    document.getElementById('reportSecWrap').classList.toggle('hidden', type !== 'by_secretariat');
+    document.getElementById('reportEventWrap').classList.toggle('hidden', type !== 'event_attendance');
+    buildOfficialSheet();
+  }
+
+  function buildOfficialSheet() {
+    const unit = allUnits.find(u => u.id === selectedUnitId);
+    if (!unit) return;
+    const chain = getUnitChain(selectedUnitId);
+    const type = document.getElementById('reportTypeSelect').value;
+    const selectedSec = document.getElementById('reportSecSelect').value;
+
+    // التغيير التلقائي لاسم الأمانة في الترويسة عند طلب كشف أمانة نوعية معينة
+    const dynamicSecretariatHeader = (type === 'by_secretariat' && selectedSec) ? selectedSec : 'أمانة التنظيم';
+    const todayStr = new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
+    const refNo = `${new Date().getFullYear()}/${Math.floor(100 + Math.random() * 900)}`;
+
+    const logoHtml = unit.logo_url
+      ? `<img src="${unit.logo_url}" class="w-16 h-16 mx-auto rounded-full object-cover border-2 border-blue-900" />`
+      : `<div class="w-16 h-16 mx-auto rounded-full bg-blue-950 text-white border-2 border-amber-500 flex flex-col items-center justify-center font-extrabold text-[11px] leading-tight"><span>حزب</span><span class="text-amber-400">مستقبل وطن</span></div>`;
+
+    let sheetTitle = '';
+    let bodyHtml = '';
+
+    if (type === 'all_members' || type === 'by_secretariat' || type === 'board_only' || type === 'volunteers') {
+      let rows = [...membersData];
+      if (type === 'by_secretariat') {
+        rows = rows.filter(m => m.secretariat_name === selectedSec);
+        sheetTitle = `كشف تشكيل وأعضاء (${selectedSec})`;
+      } else if (type === 'board_only') {
+        rows = rows.filter(m => ['أمين شياخة', 'أمين تنظيم', 'أمين أمانة نوعية', 'هيئة مكتب'].includes(m.org_role));
+        sheetTitle = 'كشف تشكيل هيئة المكتب والقيادات التنظيمية';
+      } else if (type === 'volunteers') {
+        rows = rows.filter(m => ['متطوع', 'مندوب انتخابات'].includes(m.org_role));
+        sheetTitle = 'كشف المتطوعين الميدانيين ومناديب الانتخابات';
+      } else {
+        sheetTitle = 'الكشف الشامل للعضوية والكوادر التنظيمية';
+      }
+
+      bodyHtml = `
+        <table class="w-full border-collapse border border-slate-400 text-[11px] mt-4">
+          <thead>
+            <tr class="bg-blue-950 text-white">
+              <th class="border border-slate-400 p-2 w-8">م</th>
+              <th class="border border-slate-400 p-2">الاسم الرباعي</th>
+              <th class="border border-slate-400 p-2">الرقم القومي</th>
+              <th class="border border-slate-400 p-2">رقم الهاتف</th>
+              <th class="border border-slate-400 p-2">الأمانة / الصفة</th>
+              <th class="border border-slate-400 p-2">الوحدة / المربع</th>
+              <th class="border border-slate-400 p-2 w-20">التوقيع</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.length ? rows.map((m, idx) => {
+              const uName = allUnits.find(u => u.id === m.unit_id)?.name || '';
+              return `
+                <tr class="${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}">
+                  <td class="border border-slate-400 p-1.5 text-center font-bold">${idx + 1}</td>
+                  <td class="border border-slate-400 p-1.5 font-bold">${m.full_name}</td>
+                  <td class="border border-slate-400 p-1.5 text-center">${m.national_id || '-'}</td>
+                  <td class="border border-slate-400 p-1.5 text-center">${m.phone}</td>
+                  <td class="border border-slate-400 p-1.5 text-center">${m.secretariat_name} (${m.org_role})</td>
+                  <td class="border border-slate-400 p-1.5 text-center">${uName} ${m.zone ? `- ${m.zone}` : ''}</td>
+                  <td class="border border-slate-400 p-1.5"></td>
+                </tr>
+              `;
+            }).join('') : `<tr><td colspan="7" class="border border-slate-400 p-4 text-center text-slate-400">لا توجد بيانات مسجلة في هذا التصنيف</td></tr>`}
+          </tbody>
+        </table>
+      `;
+    } else if (type === 'event_attendance') {
+      const evId = document.getElementById('reportEventSelect').value;
+      const ev = eventsData.find(x => x.id === evId);
+      sheetTitle = ev ? `كشف حضور ومشاركة: ${ev.title} (${ev.event_date})` : 'كشف حضور فعالية';
+      const atts = ev?.event_attendees || [];
+      bodyHtml = `
+        <table class="w-full border-collapse border border-slate-400 text-[11px] mt-4">
+          <thead>
+            <tr class="bg-blue-950 text-white">
+              <th class="border border-slate-400 p-2 w-8">م</th>
+              <th class="border border-slate-400 p-2">اسم المشارك</th>
+              <th class="border border-slate-400 p-2">الصفة / الأمانة</th>
+              <th class="border border-slate-400 p-2">رقم الهاتف</th>
+              <th class="border border-slate-400 p-2 w-24">توقيع الحضور</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${atts.length ? atts.map((a, idx) => {
+              const m = membersData.find(x => x.id === a.member_id);
+              return `
+                <tr>
+                  <td class="border border-slate-400 p-1.5 text-center font-bold">${idx + 1}</td>
+                  <td class="border border-slate-400 p-1.5 font-bold">${m ? m.full_name : a.guest_name}</td>
+                  <td class="border border-slate-400 p-1.5 text-center">${m ? `${m.secretariat_name} - ${m.org_role}` : 'مشارك خارجي'}</td>
+                  <td class="border border-slate-400 p-1.5 text-center">${m ? m.phone : (a.guest_phone || '-')}</td>
+                  <td class="border border-slate-400 p-1.5"></td>
+                </tr>
+              `;
+            }).join('') : `<tr><td colspan="5" class="border border-slate-400 p-4 text-center text-slate-400">لا يوجد مشاركون مسجلون</td></tr>`}
+          </tbody>
+        </table>
+      `;
+    } else if (type === 'issues_report') {
+      sheetTitle = 'تقرير رصد المشكلات الخدمية والحالات الإنسانية';
+      bodyHtml = `
+        <h4 class="font-extrabold text-xs text-blue-950 mt-4 mb-1">أولاً: المشكلات الخدمية المرصودة (${issuesData.length})</h4>
+        <table class="w-full border-collapse border border-slate-400 text-[11px]">
+          <thead><tr class="bg-blue-950 text-white"><th class="border p-1.5">م</th><th class="border p-1.5">المشكلة</th><th class="border p-1.5">التصنيف</th><th class="border p-1.5">الموقع</th><th class="border p-1.5">الحالة</th></tr></thead>
+          <tbody>${issuesData.map((i, idx) => `<tr><td class="border p-1.5 text-center">${idx+1}</td><td class="border p-1.5 font-bold">${i.title}</td><td class="border p-1.5 text-center">${i.category}</td><td class="border p-1.5 text-center">${i.zone||'-'}</td><td class="border p-1.5 text-center">${i.status}</td></tr>`).join('')}</tbody>
+        </table>
+        <h4 class="font-extrabold text-xs text-blue-950 mt-4 mb-1">ثانياً: سجل الحالات الإنسانية (${casesData.length})</h4>
+        <table class="w-full border-collapse border border-slate-400 text-[11px]">
+          <thead><tr class="bg-blue-950 text-white"><th class="border p-1.5">م</th><th class="border p-1.5">اسم الحالة</th><th class="border p-1.5">نوع الاحتياج</th><th class="border p-1.5">الهاتف</th><th class="border p-1.5">الموقف</th></tr></thead>
+          <tbody>${casesData.map((c, idx) => `<tr><td class="border p-1.5 text-center">${idx+1}</td><td class="border p-1.5 font-bold">${c.beneficiary_name}</td><td class="border p-1.5 text-center">${c.need_type}</td><td class="border p-1.5 text-center">${c.phone||'-'}</td><td class="border p-1.5 text-center">${c.status}</td></tr>`).join('')}</tbody>
+        </table>
+      `;
+    } else {
+      sheetTitle = 'التقرير التنظيمي والإحصائي الشامل';
+      bodyHtml = `
+        <div class="grid grid-cols-4 gap-2 my-4 text-center">
+          <div class="border border-slate-400 p-2 rounded"><div class="text-[10px]">إجمالي العضوية</div><div class="font-extrabold text-base">${membersData.length}</div></div>
+          <div class="border border-slate-400 p-2 rounded"><div class="text-[10px]">الفعاليات والحملات</div><div class="font-extrabold text-base">${eventsData.length}</div></div>
+          <div class="border border-slate-400 p-2 rounded"><div class="text-[10px]">المشكلات الخدمية</div><div class="font-extrabold text-base">${issuesData.length}</div></div>
+          <div class="border border-slate-400 p-2 rounded"><div class="text-[10px]">الحالات الإنسانية</div><div class="font-extrabold text-base">${casesData.length}</div></div>
+        </div>
+        <table class="w-full border-collapse border border-slate-400 text-[11px]">
+          <thead><tr class="bg-blue-950 text-white"><th class="border p-1.5">م</th><th class="border p-1.5">الأمانة النوعية</th><th class="border p-1.5">عدد الأعضاء المسجلين</th></tr></thead>
+          <tbody>${secretariats.map((s, idx) => `<tr><td class="border p-1.5 text-center">${idx+1}</td><td class="border p-1.5 font-bold">${s.name}</td><td class="border p-1.5 text-center font-bold">${membersData.filter(m => m.secretariat_name === s.name).length}</td></tr>`).join('')}</tbody>
+        </table>
+      `;
+    }
+
+    document.getElementById('officialSheetContainer').innerHTML = `
+      <!-- الترويسة التنظيمية الرسمية -->
+      <div class="border-b-2 border-blue-950 pb-3 flex items-start justify-between gap-2 text-xs">
+        <div class="space-y-0.5 font-extrabold text-blue-950 leading-relaxed">
+          <div>جمهورية مصر العربية</div>
+          <div>حزب مستقبل وطن</div>
+          ${chain.map(c => `<div>${c.name}</div>`).join('')}
+          <div class="text-sky-700 underline">${dynamicSecretariatHeader}</div>
+        </div>
+        <div class="text-center">
+          ${logoHtml}
+          <div class="font-extrabold text-[11px] text-blue-950 mt-1">« كلنا نعمل من أجل مصر »</div>
+        </div>
+        <div class="text-left text-[11px] text-slate-700 space-y-1 font-bold">
+          <div>التاريخ: ${todayStr}</div>
+          <div>رقم القيد: ${refNo}</div>
+          <div>إجمالي السجلات: ${membersData.length}</div>
+        </div>
+      </div>
+
+      <!-- عنوان الكشف -->
+      <div class="text-center my-3">
+        <span class="inline-block bg-slate-100 border border-slate-400 px-6 py-1.5 rounded-lg font-extrabold text-sm text-blue-950">${sheetTitle}</span>
+      </div>
+
+      ${bodyHtml}
+
+      <!-- التوقيعات الرسمية المعتمدة -->
+      <div class="grid grid-cols-2 gap-8 mt-10 pt-4 text-center text-xs font-extrabold text-blue-950">
+        <div>
+          <p>أمين التنظيم</p>
+          <p class="mt-2 text-slate-800">${unit.org_secretary_name || '........................'}</p>
+          <p class="text-[10px] text-slate-400 mt-4">التوقيع: ........................</p>
+        </div>
+        <div>
+          <p>يُعتمد ،،، أمين الوحدة الحزبية</p>
+          <p class="mt-2 text-slate-800">${unit.secretary_name || '........................'}</p>
+          <p class="text-[10px] text-slate-400 mt-4">التوقيع: ........................</p>
+        </div>
+      </div>
+    `;
+  }
+
+  function exportMembersCSV() {
+    const headers = ['الاسم', 'الهاتف', 'الرقم القومي', 'الأمانة', 'الصفة', 'المربع'];
+    const rows = membersData.map(m => [m.full_name, m.phone, m.national_id || '', m.secretariat_name, m.org_role, m.zone || '']);
+    const csv = '\uFEFF' + [headers, ...rows].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `كشف_الأعضاء_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+  }
+
+  // الإدارة والصلاحيات
+  async function saveUnitSettings() {
+    const secretary_name = document.getElementById('editSecretaryName').value.trim();
+    const org_secretary_name = document.getElementById('editOrgSecretaryName').value.trim();
+    await sb.from('org_units').update({ secretary_name, org_secretary_name }).eq('id', selectedUnitId);
+    const { data } = await sb.from('org_units').select('*').order('created_at');
+    allUnits = data || [];
+    buildOfficialSheet();
+    alert('تم حفظ بيانات الترويسة والتوقيعات بنجاح');
+  }
+
+  function handleLogoUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      const logo_url = ev.target.result;
+      await sb.from('org_units').update({ logo_url }).eq('id', selectedUnitId);
+      const { data } = await sb.from('org_units').select('*').order('created_at');
+      allUnits = data || [];
+      await loadScopeData();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function createSubUnit() {
+    const name = document.getElementById('newUnitName').value.trim();
+    const level = document.getElementById('newUnitLevel').value;
+    const parent_id = document.getElementById('newUnitParent').value;
+    if (!name) return alert('اكتب اسم الوحدة التنظيمية');
+    const { error } = await sb.from('org_units').insert({ name, level, parent_id });
+    if (error) return alert(error.message);
+    document.getElementById('newUnitName').value = '';
+    const { data } = await sb.from('org_units').select('*').order('created_at');
+    allUnits = data || [];
+    setupHierarchyFilter();
+    renderAdminLists();
+    alert('تم إضافة الوحدة التنظيمية بنجاح');
+  }
+
+  function toggleProfSecSelect() {
+    const role = document.getElementById('profRole').value;
+    document.getElementById('profSec').classList.toggle('hidden', role !== 'secretariat_admin');
+  }
+
+  async function saveUserProfile() {
+    const id = document.getElementById('profUid').value.trim();
+    const full_name = document.getElementById('profName').value.trim();
+    const role = document.getElementById('profRole').value;
+    const unit_id = document.getElementById('profUnit').value;
+    const secretariat_name = role === 'secretariat_admin' ? document.getElementById('profSec').value : null;
+    if (!id || !full_name) return alert('يرجى إدخال User UID والاسم الكامل');
+    const { error } = await sb.from('profiles').upsert({ id, full_name, role, unit_id, secretariat_name, is_active: true });
+    if (error) return alert('خطأ: ' + error.message);
+    document.getElementById('profUid').value = '';
+    document.getElementById('profName').value = '';
+    renderAdminLists();
+    alert('تم تفعيل صلاحية المستخدم بنجاح');
+  }
+
+  async function renderAdminLists() {
+    const accessibleIds = currentProfile.role === 'super_admin'
+      ? allUnits.map(u => u.id)
+      : getDescendantUnitIds(currentProfile.unit_id);
+
+    document.getElementById('unitsTreeList').innerHTML = allUnits
+      .filter(u => accessibleIds.includes(u.id))
+      .map(u => `<div class="p-2 bg-slate-50 rounded-lg border">• <strong>${u.name}</strong> (${u.level})</div>`)
+      .join('');
+
+    const { data: profs } = await sb.from('profiles').select('*').in('unit_id', accessibleIds);
+    document.getElementById('profilesList').innerHTML = (profs || []).map(p => {
+      const uName = allUnits.find(u => u.id === p.unit_id)?.name || '';
+      return `<div class="p-2.5 bg-slate-50 rounded-xl border text-xs flex justify-between"><span><strong>${p.full_name}</strong> - ${ROLE_LABELS[p.role] || p.role}</span><span class="text-sky-800 font-bold">${uName}</span></div>`;
+    }).join('');
+  }
+
+  // التنقل بين التبويبات
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-section').forEach(s => s.classList.add('hidden'));
+    document.getElementById(`tab-${tab}`).classList.remove('hidden');
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('text-blue-900'));
+    document.getElementById(`nav-${tab}`).classList.add('text-blue-900');
+    if (tab === 'reports') buildOfficialSheet();
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).classList.add('hidden');
+  }
+</script>
+</body>
+</html>
