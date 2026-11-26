@@ -31,7 +31,7 @@
 </head>
 <body class="pb-24">
 
-  <!-- شاشة إعداد الاتصال بـ Supabase (تظهر إذا لم يتم إدخال المفاتيح) -->
+  <!-- شاشة إعداد الاتصال بـ Supabase -->
   <div id="setupScreen" class="hidden min-h-screen flex items-center justify-center p-4 brand-gradient">
     <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
       <div class="text-center mb-5">
@@ -42,11 +42,11 @@
       <div class="space-y-3">
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">Project URL</label>
-          <input id="cfgUrl" type="url" placeholder="https://xxxx.supabase.co" class="w-full border rounded-xl p-2.5 text-sm text-left" dir="ltr" />
+          <input id="cfgUrl" type="url" value="https://xwflckjtgcmbbgpsvaim.supabase.co" placeholder="https://xxxx.supabase.co" class="w-full border rounded-xl p-2.5 text-sm text-left" dir="ltr" />
         </div>
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Anon Public Key</label>
-          <input id="cfgKey" type="text" placeholder="eyJhbGciOiJIUzI1NiIs..." class="w-full border rounded-xl p-2.5 text-sm text-left" dir="ltr" />
+          <label class="block text-xs font-bold text-slate-700 mb-1">Anon / Publishable Public Key</label>
+          <input id="cfgKey" type="text" placeholder="sb_publishable_... أو eyJ..." class="w-full border rounded-xl p-2.5 text-sm text-left" dir="ltr" />
         </div>
         <button onclick="saveSupabaseConfig()" class="w-full brand-gradient text-white font-bold py-3 rounded-xl shadow hover:opacity-95">حفظ الاتصال والانتقال لتسجيل الدخول</button>
       </div>
@@ -84,14 +84,13 @@
 
   <!-- واجهة التطبيق الرئيسية -->
   <div id="appScreen" class="hidden">
-    <!-- الشريط العلوي -->
     <header class="brand-gradient text-white p-4 shadow-md no-print sticky top-0 z-30">
       <div class="max-w-5xl mx-auto flex items-center justify-between gap-2">
         <div class="flex items-center gap-3">
           <img id="topLogoImg" src="" alt="شعار" class="hidden w-11 h-11 rounded-full object-cover border-2 border-amber-400 bg-white" />
           <div id="topLogoFallback" class="w-11 h-11 rounded-full bg-white text-slate-900 border-2 border-amber-400 flex items-center justify-center font-extrabold text-xs text-center leading-tight">مستقبل<br>وطن</div>
           <div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
               <h1 id="headerUnitName" class="font-extrabold text-base md:text-lg leading-tight">جاري التحميل...</h1>
               <span id="headerRoleBadge" class="text-[10px] bg-amber-400 text-slate-900 font-extrabold px-2 py-0.5 rounded-full"></span>
             </div>
@@ -104,14 +103,13 @@
         </div>
       </div>
 
-      <!-- فلتر النطاق الهرمي للمستويات الأعلى -->
+      <!-- فلتر النطاق الهرمي -->
       <div id="scopeFilterBar" class="hidden max-w-5xl mx-auto mt-3 pt-2.5 border-t border-white/15 flex flex-wrap items-center gap-2">
         <span class="text-xs text-sky-200 font-bold">نطاق العرض:</span>
         <select id="activeUnitFilter" onchange="onScopeChange()" class="bg-slate-900/70 text-white border border-white/20 rounded-lg px-3 py-1 text-xs font-bold flex-1 min-w-[200px]"></select>
       </div>
     </header>
 
-    <!-- محتوى التبويبات -->
     <main class="max-w-5xl mx-auto p-4">
 
       <!-- 1. الرئيسية والإحصائيات -->
@@ -143,7 +141,6 @@
           </div>
         </div>
 
-        <!-- توزيع الأعضاء على الأمانات -->
         <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
           <h3 class="font-extrabold text-slate-800 text-sm mb-3">توزيع القوة التنظيمية على الأمانات النوعية</h3>
           <div id="secretariatsStatsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5"></div>
@@ -167,7 +164,7 @@
               <option>أمين شياخة</option>
               <option>أمين تنظيم</option>
               <option>أمين أمانة نوعية</option>
-              <option>هيئة مكتب</option>
+              <option>عضو هيئة مكتب</option>
               <option>عضو عامل</option>
               <option>متطوع</option>
               <option>مندوب انتخابات</option>
@@ -177,7 +174,7 @@
         <div id="membersList" class="space-y-2.5"></div>
       </section>
 
-      <!-- 3. الفعاليات والحملات وتسجيل المشاركين -->
+      <!-- 3. الفعاليات والحملات -->
       <section id="tab-events" class="tab-section hidden space-y-4">
         <div class="bg-white rounded-2xl p-4 shadow-sm flex items-center justify-between">
           <h2 class="font-extrabold text-slate-800">الفعاليات والحملات الميدانية</h2>
@@ -195,7 +192,7 @@
 
         <div id="sub-issues" class="space-y-3">
           <div class="flex justify-end">
-            <button onclick="openIssueModal()" class="brand-gradient text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow">+ تسجيل مشكلة خدمية</button>
+            <button onclick="openIssueModal()" class="brand-gradient text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow">+ تسجيل مشكلة / شكوى مواطن</button>
           </div>
           <div id="issuesList" class="space-y-2.5"></div>
         </div>
@@ -240,13 +237,11 @@
           </div>
         </div>
 
-        <!-- ورقة الكشف الرسمي A4 -->
         <div id="officialSheetContainer" class="bg-white rounded-2xl shadow-md p-6 border border-slate-200 print-sheet"></div>
       </section>
 
       <!-- 6. الإدارة والهيكل التنظيمي والصلاحيات -->
       <section id="tab-admin" class="tab-section hidden space-y-4">
-        <!-- إعدادات الوحدة الحالية -->
         <div class="bg-white rounded-2xl p-4 shadow-sm space-y-3">
           <h2 class="font-extrabold text-slate-800">إعدادات الترويسة والشعار للوحدة الحالية</h2>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -259,14 +254,13 @@
               <input id="editOrgSecretaryName" type="text" class="w-full border rounded-xl p-2.5 text-xs font-bold" />
             </div>
             <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">رابط أو رفع شعار الوحدة (اختياري)</label>
+              <label class="block text-xs font-bold text-slate-600 mb-1">رفع شعار الوحدة (اختياري)</label>
               <input id="uploadLogoInput" type="file" accept="image/*" onchange="handleLogoUpload(event)" class="w-full border rounded-xl p-2 text-xs" />
             </div>
           </div>
           <button onclick="saveUnitSettings()" class="brand-gradient text-white text-xs font-bold px-4 py-2 rounded-xl">حفظ بيانات الترويسة والتوقيعات</button>
         </div>
 
-        <!-- إضافة وحدة تنظيمية تابعة (محافظة / قسم / شياخة) -->
         <div id="adminUnitsCard" class="bg-white rounded-2xl p-4 shadow-sm space-y-3">
           <h2 class="font-extrabold text-slate-800">إضافة وحدة تنظيمية فرعية (محافظة / قسم / شياخة)</h2>
           <div class="grid grid-cols-1 md:grid-cols-4 gap-2.5">
@@ -282,20 +276,18 @@
           <div id="unitsTreeList" class="text-xs text-slate-600 space-y-1 pt-2"></div>
         </div>
 
-        <!-- إدارة حسابات المستخدمين والصلاحيات -->
         <div id="adminUsersCard" class="bg-white rounded-2xl p-4 shadow-sm space-y-3">
           <h2 class="font-extrabold text-slate-800">إدارة صلاحيات الفريق والمستخدمين</h2>
-          <p class="text-xs text-slate-500">لإضافة مستخدم جديد: أنشئ حسابه أولاً من (Supabase &gt; Authentication &gt; Users) ثم انسخ الـ User UID هنا لتحديد وحدته وصلاحيته.</p>
+          <p class="text-xs text-slate-500">أنشئ الحساب أولاً من (Supabase &gt; Authentication &gt; Users) ثم انسخ الـ User UID هنا لتحديد وحدته وصلاحيته.</p>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
             <input id="profUid" type="text" placeholder="User UID من Supabase Auth" class="border rounded-xl p-2.5 text-xs text-left" dir="ltr" />
             <input id="profName" type="text" placeholder="الاسم الكامل للمسؤول" class="border rounded-xl p-2.5 text-xs" />
             <select id="profRole" onchange="toggleProfSecSelect()" class="border rounded-xl p-2.5 text-xs font-bold">
-              <option value="sheyakha_admin">أمين / أمين تنظيم شياخة</option>
-              <option value="secretariat_admin">أمين أمانة نوعية</option>
-              <option value="data_entry">معاون ميداني / مدخل بيانات</option>
-              <option value="district_admin">أمين / أمين تنظيم قسم أو مركز</option>
-              <option value="gov_admin">أمين / أمين تنظيم محافظة</option>
-              <option value="super_admin">أمانة مركزية / مدير عام</option>
+              <option value="org_secretary">أمين تنظيم الوحدة</option>
+              <option value="unit_admin">أمين الوحدة الحزبية</option>
+              <option value="secretariat_head">أمين أمانة نوعية</option>
+              <option value="member">معاون ميداني / عضو</option>
+              <option value="super_admin">مدير عام المنصة</option>
             </select>
             <select id="profUnit" class="border rounded-xl p-2.5 text-xs font-bold"></select>
             <select id="profSec" class="hidden border rounded-xl p-2.5 text-xs font-bold"></select>
@@ -319,26 +311,24 @@
     </nav>
   </div>
 
-  <!-- النوافذ المنبثقة (Modals) -->
-  <!-- 1. إضافة / تعديل عضو -->
+  <!-- 1. إضافة عضو -->
   <div id="memberModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-3 max-h-[90vh] overflow-y-auto">
       <h3 class="font-extrabold text-slate-800">بيانات العضو / المتطوع</h3>
-      <input type="hidden" id="mId" />
       <input id="mName" type="text" placeholder="الاسم الرباعي *" class="w-full border rounded-xl p-2.5 text-xs" />
       <input id="mPhone" type="tel" placeholder="رقم الهاتف *" class="w-full border rounded-xl p-2.5 text-xs" />
       <input id="mNid" type="text" maxlength="14" placeholder="الرقم القومي (14 رقم)" class="w-full border rounded-xl p-2.5 text-xs" />
       <select id="mSec" class="w-full border rounded-xl p-2.5 text-xs font-bold"></select>
       <select id="mRole" class="w-full border rounded-xl p-2.5 text-xs font-bold">
-        <option>عضو عامل</option>
+        <option>عضو هيئة مكتب</option>
         <option>أمين شياخة</option>
         <option>أمين تنظيم</option>
         <option>أمين أمانة نوعية</option>
-        <option>هيئة مكتب</option>
+        <option>عضو عامل</option>
         <option>متطوع</option>
         <option>مندوب انتخابات</option>
       </select>
-      <input id="mZone" type="text" placeholder="المربع السكني / المنطقة" class="w-full border rounded-xl p-2.5 text-xs" />
+      <input id="mZone" type="text" placeholder="العنوان / المربع السكني" class="w-full border rounded-xl p-2.5 text-xs" />
       <input id="mMemNo" type="text" placeholder="رقم العضوية / الكارنيه (إن وجد)" class="w-full border rounded-xl p-2.5 text-xs" />
       <div class="flex gap-2 pt-2">
         <button onclick="saveMember()" class="flex-1 brand-gradient text-white font-bold py-2.5 rounded-xl text-xs">حفظ</button>
@@ -352,13 +342,6 @@
     <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-3">
       <h3 class="font-extrabold text-slate-800">إضافة فعالية أو حملة</h3>
       <input id="eTitle" type="text" placeholder="عنوان الفعالية / الحملة *" class="w-full border rounded-xl p-2.5 text-xs" />
-      <select id="eType" class="w-full border rounded-xl p-2.5 text-xs font-bold">
-        <option>حملة ميدانية</option>
-        <option>قافلة طبية / خدمية</option>
-        <option>مبادرة مجتمعية</option>
-        <option>ندوة تثقيفية</option>
-        <option>اجتماع تنظيمي</option>
-      </select>
       <select id="eSec" class="w-full border rounded-xl p-2.5 text-xs font-bold"></select>
       <input id="eDate" type="date" class="w-full border rounded-xl p-2.5 text-xs" />
       <input id="eLocation" type="text" placeholder="مكان التنفيذ" class="w-full border rounded-xl p-2.5 text-xs" />
@@ -397,8 +380,9 @@
   <!-- 4. إضافة مشكلة خدمية -->
   <div id="issueModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-3">
-      <h3 class="font-extrabold text-slate-800">تسجيل مشكلة خدمية</h3>
-      <input id="iTitle" type="text" placeholder="عنوان المشكلة *" class="w-full border rounded-xl p-2.5 text-xs" />
+      <h3 class="font-extrabold text-slate-800">تسجيل مشكلة خدمية / شكوى مواطن</h3>
+      <input id="iCitizenName" type="text" placeholder="اسم المواطن مقدم الشكوى *" class="w-full border rounded-xl p-2.5 text-xs" />
+      <input id="iCitizenPhone" type="tel" placeholder="رقم هاتف المواطن" class="w-full border rounded-xl p-2.5 text-xs" />
       <select id="iCat" class="w-full border rounded-xl p-2.5 text-xs font-bold">
         <option>مرافق وصرف صحي</option>
         <option>كهرباء وإنارة</option>
@@ -408,9 +392,7 @@
         <option>تموين</option>
         <option>أخرى</option>
       </select>
-      <input id="iZone" type="text" placeholder="الموقع / الشارع" class="w-full border rounded-xl p-2.5 text-xs" />
-      <input id="iAuth" type="text" placeholder="الجهة المختصة (الحي، شركة المياه...)" class="w-full border rounded-xl p-2.5 text-xs" />
-      <textarea id="iDetails" rows="2" placeholder="تفاصيل المشكلة..." class="w-full border rounded-xl p-2.5 text-xs"></textarea>
+      <textarea id="iDetails" rows="3" placeholder="تفاصيل المشكلة والموقع والجهة المختصة *" class="w-full border rounded-xl p-2.5 text-xs"></textarea>
       <div class="flex gap-2 pt-2">
         <button onclick="saveIssue()" class="flex-1 brand-gradient text-white font-bold py-2.5 rounded-xl text-xs">حفظ</button>
         <button onclick="closeModal('issueModal')" class="px-4 bg-slate-100 text-slate-700 font-bold py-2.5 rounded-xl text-xs">إلغاء</button>
@@ -433,8 +415,8 @@
         <option>تجهيز سكن</option>
         <option>أخرى</option>
       </select>
-      <input id="cZone" type="text" placeholder="العنوان / المربع" class="w-full border rounded-xl p-2.5 text-xs" />
-      <textarea id="cNotes" rows="2" placeholder="ملاحظات الحالة..." class="w-full border rounded-xl p-2.5 text-xs"></textarea>
+      <input id="cSupport" type="text" placeholder="الدعم المقدم / المطلوب" class="w-full border rounded-xl p-2.5 text-xs" />
+      <textarea id="cNotes" rows="2" placeholder="العنوان وملاحظات الحالة..." class="w-full border rounded-xl p-2.5 text-xs"></textarea>
       <div class="flex gap-2 pt-2">
         <button onclick="saveCase()" class="flex-1 brand-gradient text-white font-bold py-2.5 rounded-xl text-xs">حفظ</button>
         <button onclick="closeModal('caseModal')" class="px-4 bg-slate-100 text-slate-700 font-bold py-2.5 rounded-xl text-xs">إلغاء</button>
@@ -443,8 +425,7 @@
   </div>
 
 <script>
-  // يمكنك وضع مفاتيح مشروعك مباشرة هنا لتعمل تلقائياً لجميع المستخدمين:
-  const DEFAULT_SUPABASE_URL = ""; 
+  const DEFAULT_SUPABASE_URL = "https://xwflckjtgcmbbgpsvaim.supabase.co";
   const DEFAULT_SUPABASE_KEY = "";
 
   let sb = null;
@@ -461,15 +442,13 @@
   let deferredPrompt = null;
 
   const ROLE_LABELS = {
-    super_admin: 'الأمانة المركزية',
-    gov_admin: 'أمانة المحافظة',
-    district_admin: 'أمانة القسم / المركز',
-    sheyakha_admin: 'أمانة الشياخة',
-    secretariat_admin: 'أمين أمانة نوعية',
-    data_entry: 'معاون ميداني'
+    super_admin: 'مدير عام المنصة',
+    unit_admin: 'أمين الوحدة الحزبية',
+    org_secretary: 'أمين التنظيم',
+    secretariat_head: 'أمين أمانة نوعية',
+    member: 'معاون ميداني'
   };
 
-  // تسجيل Service Worker للتثبيت على الهاتف
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(() => {});
   }
@@ -485,10 +464,9 @@
     document.getElementById('installPwaBtn')?.classList.add('hidden');
   }
 
-  // التهيئة الأولية
   window.addEventListener('DOMContentLoaded', async () => {
-    const url = DEFAULT_SUPABASE_URL || localStorage.getItem('sb_url');
-    const key = DEFAULT_SUPABASE_KEY || localStorage.getItem('sb_key');
+    const url = localStorage.getItem('sb_url') || DEFAULT_SUPABASE_URL;
+    const key = localStorage.getItem('sb_key') || DEFAULT_SUPABASE_KEY;
     if (!url || !key) {
       document.getElementById('setupScreen').classList.remove('hidden');
       return;
@@ -504,7 +482,7 @@
   });
 
   function saveSupabaseConfig() {
-    const url = document.getElementById('cfgUrl').value.trim();
+    const url = document.getElementById('cfgUrl').value.trim().replace(/\/+$/, '');
     const key = document.getElementById('cfgKey').value.trim();
     if (!url || !key) return alert('يرجى إدخال الرابط والمفتاح');
     localStorage.setItem('sb_url', url);
@@ -526,7 +504,7 @@
     errEl.classList.add('hidden');
     const { data, error } = await sb.auth.signInWithPassword({ email, password });
     if (error) {
-      errEl.textContent = 'خطأ في الدخول: تأكد من البريد وكلمة المرور';
+      errEl.textContent = 'خطأ في الدخول: ' + error.message;
       errEl.classList.remove('hidden');
       return;
     }
@@ -540,17 +518,27 @@
     location.reload();
   }
 
+  function getSecName(secId) {
+    return secretariats.find(s => s.id === Number(secId))?.name || 'أمانة التنظيم';
+  }
+
   async function initApp() {
-    const { data: prof, error } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
-    if (error || !prof) {
+    const { data: prof, error } = await sb.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
+    if (error) {
+      alert('خطأ في الاتصال بقاعدة البيانات: ' + error.message + '\nتأكد من صحة مفتاح Anon / Publishable Key في إعدادات الربط.');
+      document.getElementById('loginScreen').classList.remove('hidden');
+      return;
+    }
+    if (!prof) {
       alert('حسابك مسجل في المصادقة ولكن لم يتم ربطه بوحدة تنظيمية في جدول profiles بعد.');
+      document.getElementById('loginScreen').classList.remove('hidden');
       return;
     }
     currentProfile = prof;
 
     const [unitsRes, secRes] = await Promise.all([
       sb.from('org_units').select('*').order('created_at'),
-      sb.from('secretariats').select('*').order('sort_order')
+      sb.from('secretariats').select('*').order('id')
     ]);
     allUnits = unitsRes.data || [];
     secretariats = secRes.data || [];
@@ -588,7 +576,7 @@
       : getDescendantUnitIds(currentProfile.unit_id);
 
     const accessibleUnits = allUnits.filter(u => accessibleIds.includes(u.id));
-    selectedUnitId = currentProfile.unit_id;
+    selectedUnitId = currentProfile.unit_id || (accessibleUnits[0]?.id);
 
     const filterSelect = document.getElementById('activeUnitFilter');
     filterSelect.innerHTML = accessibleUnits.map(u => `<option value="${u.id}">${u.name}</option>`).join('');
@@ -598,11 +586,10 @@
       document.getElementById('scopeFilterBar').classList.remove('hidden');
     }
 
-    // تعبئة قوائم الإدارة
     document.getElementById('newUnitParent').innerHTML = accessibleUnits.map(u => `<option value="${u.id}">${u.name}</option>`).join('');
     document.getElementById('profUnit').innerHTML = accessibleUnits.map(u => `<option value="${u.id}">${u.name}</option>`).join('');
 
-    if (currentProfile.role === 'data_entry' || currentProfile.role === 'secretariat_admin') {
+    if (currentProfile.role === 'member' || currentProfile.role === 'secretariat_head') {
       document.getElementById('adminUnitsCard').classList.add('hidden');
       document.getElementById('adminUsersCard').classList.add('hidden');
     }
@@ -655,7 +642,7 @@
   }
 
   function populateSecretariatDropdowns() {
-    const opts = secretariats.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+    const opts = secretariats.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
     document.getElementById('filterMemberSec').innerHTML = `<option value="">كل الأمانات النوعية</option>` + opts;
     document.getElementById('mSec').innerHTML = opts;
     document.getElementById('eSec').innerHTML = opts;
@@ -671,7 +658,7 @@
 
     const grid = document.getElementById('secretariatsStatsGrid');
     grid.innerHTML = secretariats.map(s => {
-      const count = membersData.filter(m => m.secretariat_name === s.name).length;
+      const count = membersData.filter(m => Number(m.secretariat_id) === s.id).length;
       return `
         <div class="border border-slate-100 bg-slate-50 rounded-xl p-3 flex items-center justify-between">
           <span class="text-xs font-bold text-slate-700">${s.name}</span>
@@ -683,13 +670,13 @@
 
   function renderMembers() {
     const q = document.getElementById('searchMemberInput').value.trim();
-    const sec = document.getElementById('filterMemberSec').value;
+    const secId = document.getElementById('filterMemberSec').value;
     const role = document.getElementById('filterMemberRole').value;
 
     const filtered = membersData.filter(m => {
       const matchQ = !q || m.full_name.includes(q) || (m.phone && m.phone.includes(q)) || (m.national_id && m.national_id.includes(q));
-      const matchSec = !sec || m.secretariat_name === sec;
-      const matchRole = !role || m.org_role === role;
+      const matchSec = !secId || String(m.secretariat_id) === secId;
+      const matchRole = !role || m.position === role;
       return matchQ && matchSec && matchRole;
     });
 
@@ -701,15 +688,16 @@
 
     list.innerHTML = filtered.map(m => {
       const unitName = allUnits.find(u => u.id === m.unit_id)?.name || '';
+      const secName = getSecName(m.secretariat_id);
       return `
         <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between gap-2">
           <div>
             <div class="flex items-center gap-2 flex-wrap">
               <h4 class="font-extrabold text-sm text-slate-800">${m.full_name}</h4>
-              <span class="text-[10px] bg-sky-100 text-sky-900 font-bold px-2 py-0.5 rounded-full">${m.org_role}</span>
-              <span class="text-[10px] bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-full">${m.secretariat_name}</span>
+              <span class="text-[10px] bg-sky-100 text-sky-900 font-bold px-2 py-0.5 rounded-full">${m.position || 'عضو'}</span>
+              <span class="text-[10px] bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-full">${secName}</span>
             </div>
-            <p class="text-xs text-slate-500 mt-1">📞 ${m.phone} ${m.zone ? `| 📍 ${m.zone}` : ''} | 🏢 ${unitName}</p>
+            <p class="text-xs text-slate-500 mt-1">📞 ${m.phone || '-'} ${m.address ? `| 📍 ${m.address}` : ''} | 🏢 ${unitName}</p>
           </div>
           <button onclick="deleteMember('${m.id}')" class="text-rose-500 text-xs font-bold px-2 py-1 hover:bg-rose-50 rounded-lg">حذف</button>
         </div>
@@ -718,14 +706,13 @@
   }
 
   function openMemberModal() {
-    document.getElementById('mId').value = '';
     document.getElementById('mName').value = '';
     document.getElementById('mPhone').value = '';
     document.getElementById('mNid').value = '';
     document.getElementById('mZone').value = '';
     document.getElementById('mMemNo').value = '';
-    if (currentProfile.role === 'secretariat_admin' && currentProfile.secretariat_name) {
-      document.getElementById('mSec').value = currentProfile.secretariat_name;
+    if (currentProfile.secretariat_id) {
+      document.getElementById('mSec').value = currentProfile.secretariat_id;
     }
     document.getElementById('memberModal').classList.remove('hidden');
   }
@@ -736,10 +723,10 @@
       full_name: document.getElementById('mName').value.trim(),
       phone: document.getElementById('mPhone').value.trim(),
       national_id: document.getElementById('mNid').value.trim(),
-      secretariat_name: document.getElementById('mSec').value,
-      org_role: document.getElementById('mRole').value,
-      zone: document.getElementById('mZone').value.trim(),
-      membership_no: document.getElementById('mMemNo').value.trim(),
+      secretariat_id: Number(document.getElementById('mSec').value) || 1,
+      position: document.getElementById('mRole').value,
+      address: document.getElementById('mZone').value.trim(),
+      membership_number: document.getElementById('mMemNo').value.trim(),
       created_by: currentUser.id
     };
     if (!payload.full_name || !payload.phone) return alert('الاسم ورقم الهاتف مطلوبان');
@@ -755,7 +742,6 @@
     await loadScopeData();
   }
 
-  // الفعاليات
   function renderEvents() {
     const list = document.getElementById('eventsList');
     document.getElementById('reportEventSelect').innerHTML = eventsData.map(e => `<option value="${e.id}">${e.title} (${e.event_date})</option>`).join('');
@@ -766,12 +752,12 @@
     }
     list.innerHTML = eventsData.map(e => {
       const count = e.event_attendees?.length || 0;
+      const secName = getSecName(e.secretariat_id);
       return `
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 space-y-2">
           <div class="flex items-start justify-between gap-2">
             <div>
-              <span class="text-[10px] bg-blue-100 text-blue-900 font-bold px-2 py-0.5 rounded-full">${e.event_type}</span>
-              <span class="text-[10px] bg-slate-100 text-slate-700 font-bold px-2 py-0.5 rounded-full">${e.secretariat_name}</span>
+              <span class="text-[10px] bg-slate-100 text-slate-700 font-bold px-2 py-0.5 rounded-full">${secName}</span>
               <h4 class="font-extrabold text-sm text-slate-800 mt-1">${e.title}</h4>
               <p class="text-xs text-slate-500">📅 ${e.event_date} ${e.location ? `| 📍 ${e.location}` : ''}</p>
             </div>
@@ -798,8 +784,7 @@
     const payload = {
       unit_id: selectedUnitId,
       title: document.getElementById('eTitle').value.trim(),
-      event_type: document.getElementById('eType').value,
-      secretariat_name: document.getElementById('eSec').value,
+      secretariat_id: Number(document.getElementById('eSec').value) || 1,
       event_date: document.getElementById('eDate').value,
       location: document.getElementById('eLocation').value.trim(),
       description: document.getElementById('eDesc').value.trim(),
@@ -822,7 +807,7 @@
     activeEventId = eventId;
     const ev = eventsData.find(x => x.id === eventId);
     document.getElementById('attModalTitle').textContent = `مشاركو: ${ev.title}`;
-    document.getElementById('attMemberSelect').innerHTML = membersData.map(m => `<option value="${m.id}">${m.full_name} (${m.secretariat_name})</option>`).join('');
+    document.getElementById('attMemberSelect').innerHTML = membersData.map(m => `<option value="${m.id}">${m.full_name} (${getSecName(m.secretariat_id)})</option>`).join('');
     renderAttendeesList(ev);
     document.getElementById('attendeesModal').classList.remove('hidden');
   }
@@ -836,7 +821,7 @@
     }
     list.innerHTML = items.map(a => {
       const m = membersData.find(x => x.id === a.member_id);
-      const name = m ? m.full_name : a.guest_name;
+      const name = m ? m.full_name : (a.guest_name || 'مشارك');
       const phone = m ? m.phone : (a.guest_phone || '');
       return `
         <div class="border rounded-xl p-2.5 flex items-center justify-between text-xs">
@@ -850,7 +835,8 @@
   async function addRegisteredAttendee() {
     const member_id = document.getElementById('attMemberSelect').value;
     if (!member_id) return;
-    await sb.from('event_attendees').insert({ event_id: activeEventId, member_id });
+    const { error } = await sb.from('event_attendees').insert({ event_id: activeEventId, member_id });
+    if (error) return alert(error.message);
     await loadScopeData();
     renderAttendeesList(eventsData.find(x => x.id === activeEventId));
   }
@@ -859,7 +845,8 @@
     const guest_name = document.getElementById('attGuestName').value.trim();
     const guest_phone = document.getElementById('attGuestPhone').value.trim();
     if (!guest_name) return;
-    await sb.from('event_attendees').insert({ event_id: activeEventId, guest_name, guest_phone });
+    const { error } = await sb.from('event_attendees').insert({ event_id: activeEventId, guest_name, guest_phone });
+    if (error) return alert(error.message);
     document.getElementById('attGuestName').value = '';
     document.getElementById('attGuestPhone').value = '';
     await loadScopeData();
@@ -872,7 +859,6 @@
     renderAttendeesList(eventsData.find(x => x.id === activeEventId));
   }
 
-  // المشكلات والحالات
   function switchSubTab(type) {
     document.getElementById('sub-issues').classList.toggle('hidden', type !== 'issues');
     document.getElementById('sub-cases').classList.toggle('hidden', type !== 'cases');
@@ -884,14 +870,15 @@
     document.getElementById('issuesList').innerHTML = issuesData.length ? issuesData.map(i => `
       <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between gap-2">
         <div>
-          <span class="text-[10px] bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-full">${i.category}</span>
-          <h4 class="font-extrabold text-sm text-slate-800 mt-1">${i.title}</h4>
-          <p class="text-xs text-slate-500">${i.zone || ''} ${i.target_authority ? `| الجهة: ${i.target_authority}` : ''}</p>
+          <span class="text-[10px] bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-full">${i.category || 'عام'}</span>
+          <h4 class="font-extrabold text-sm text-slate-800 mt-1">${i.citizen_name} ${i.citizen_phone ? `(${i.citizen_phone})` : ''}</h4>
+          <p class="text-xs text-slate-500">${i.details}</p>
         </div>
         <select onchange="updateIssueStatus('${i.id}', this.value)" class="border rounded-xl p-1.5 text-xs font-bold bg-slate-50">
           <option ${i.status==='جديدة'?'selected':''}>جديدة</option>
           <option ${i.status==='قيد المتابعة'?'selected':''}>قيد المتابعة</option>
           <option ${i.status==='تم الحل'?'selected':''}>تم الحل</option>
+          <option ${i.status==='مرفوضة'?'selected':''}>مرفوضة</option>
         </select>
       </div>
     `).join('') : `<div class="bg-white p-6 rounded-2xl text-center text-xs text-slate-400">لا توجد مشكلات مسجلة</div>`;
@@ -899,13 +886,13 @@
     document.getElementById('casesList').innerHTML = casesData.length ? casesData.map(c => `
       <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between gap-2">
         <div>
-          <span class="text-[10px] bg-rose-100 text-rose-900 font-bold px-2 py-0.5 rounded-full">${c.need_type}</span>
+          <span class="text-[10px] bg-rose-100 text-rose-900 font-bold px-2 py-0.5 rounded-full">${c.case_type || 'مساعدة'}</span>
           <h4 class="font-extrabold text-sm text-slate-800 mt-1">${c.beneficiary_name}</h4>
-          <p class="text-xs text-slate-500">📞 ${c.phone || '-'} | 📍 ${c.zone || '-'}</p>
+          <p class="text-xs text-slate-500">📞 ${c.phone || '-'} | ${c.support_provided || ''}</p>
         </div>
         <select onchange="updateCaseStatus('${c.id}', this.value)" class="border rounded-xl p-1.5 text-xs font-bold bg-slate-50">
+          <option ${c.status==='معتمدة'?'selected':''}>معتمدة</option>
           <option ${c.status==='قيد الدراسة'?'selected':''}>قيد الدراسة</option>
-          <option ${c.status==='تم التقديم'?'selected':''}>تم التقديم</option>
           <option ${c.status==='مكتملة'?'selected':''}>مكتملة</option>
         </select>
       </div>
@@ -914,17 +901,18 @@
 
   function openIssueModal() { document.getElementById('issueModal').classList.remove('hidden'); }
   async function saveIssue() {
-    const title = document.getElementById('iTitle').value.trim();
-    if (!title) return;
-    await sb.from('issues').insert({
+    const citizen_name = document.getElementById('iCitizenName').value.trim();
+    const details = document.getElementById('iDetails').value.trim();
+    if (!citizen_name || !details) return alert('اسم المواطن وتفاصيل المشكلة مطلوبان');
+    const { error } = await sb.from('issues').insert({
       unit_id: selectedUnitId,
-      title,
+      citizen_name,
+      citizen_phone: document.getElementById('iCitizenPhone').value.trim(),
       category: document.getElementById('iCat').value,
-      zone: document.getElementById('iZone').value.trim(),
-      target_authority: document.getElementById('iAuth').value.trim(),
-      details: document.getElementById('iDetails').value.trim(),
+      details,
       created_by: currentUser.id
     });
+    if (error) return alert(error.message);
     closeModal('issueModal');
     await loadScopeData();
   }
@@ -935,17 +923,18 @@
   function openCaseModal() { document.getElementById('caseModal').classList.remove('hidden'); }
   async function saveCase() {
     const beneficiary_name = document.getElementById('cName').value.trim();
-    if (!beneficiary_name) return;
-    await sb.from('humanitarian_cases').insert({
+    if (!beneficiary_name) return alert('اسم المستفيد مطلوب');
+    const { error } = await sb.from('humanitarian_cases').insert({
       unit_id: selectedUnitId,
       beneficiary_name,
       phone: document.getElementById('cPhone').value.trim(),
       national_id: document.getElementById('cNid').value.trim(),
-      need_type: document.getElementById('cType').value,
-      zone: document.getElementById('cZone').value.trim(),
+      case_type: document.getElementById('cType').value,
+      support_provided: document.getElementById('cSupport').value.trim(),
       notes: document.getElementById('cNotes').value.trim(),
       created_by: currentUser.id
     });
+    if (error) return alert(error.message);
     closeModal('caseModal');
     await loadScopeData();
   }
@@ -953,7 +942,6 @@
     await sb.from('humanitarian_cases').update({ status }).eq('id', id);
   }
 
-  // الكشوف الرسمية والترويسة الديناميكية
   function onReportTypeChange() {
     const type = document.getElementById('reportTypeSelect').value;
     document.getElementById('reportSecWrap').classList.toggle('hidden', type !== 'by_secretariat');
@@ -966,10 +954,10 @@
     if (!unit) return;
     const chain = getUnitChain(selectedUnitId);
     const type = document.getElementById('reportTypeSelect').value;
-    const selectedSec = document.getElementById('reportSecSelect').value;
+    const selectedSecId = Number(document.getElementById('reportSecSelect').value);
+    const selectedSecName = getSecName(selectedSecId);
 
-    // التغيير التلقائي لاسم الأمانة في الترويسة عند طلب كشف أمانة نوعية معينة
-    const dynamicSecretariatHeader = (type === 'by_secretariat' && selectedSec) ? selectedSec : 'أمانة التنظيم';
+    const dynamicSecretariatHeader = (type === 'by_secretariat' && selectedSecName) ? selectedSecName : 'أمانة التنظيم';
     const todayStr = new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
     const refNo = `${new Date().getFullYear()}/${Math.floor(100 + Math.random() * 900)}`;
 
@@ -983,13 +971,13 @@
     if (type === 'all_members' || type === 'by_secretariat' || type === 'board_only' || type === 'volunteers') {
       let rows = [...membersData];
       if (type === 'by_secretariat') {
-        rows = rows.filter(m => m.secretariat_name === selectedSec);
-        sheetTitle = `كشف تشكيل وأعضاء (${selectedSec})`;
+        rows = rows.filter(m => Number(m.secretariat_id) === selectedSecId);
+        sheetTitle = `كشف تشكيل وأعضاء (${selectedSecName})`;
       } else if (type === 'board_only') {
-        rows = rows.filter(m => ['أمين شياخة', 'أمين تنظيم', 'أمين أمانة نوعية', 'هيئة مكتب'].includes(m.org_role));
+        rows = rows.filter(m => ['أمين شياخة', 'أمين تنظيم', 'أمين أمانة نوعية', 'عضو هيئة مكتب'].includes(m.position));
         sheetTitle = 'كشف تشكيل هيئة المكتب والقيادات التنظيمية';
       } else if (type === 'volunteers') {
-        rows = rows.filter(m => ['متطوع', 'مندوب انتخابات'].includes(m.org_role));
+        rows = rows.filter(m => ['متطوع', 'مندوب انتخابات'].includes(m.position));
         sheetTitle = 'كشف المتطوعين الميدانيين ومناديب الانتخابات';
       } else {
         sheetTitle = 'الكشف الشامل للعضوية والكوادر التنظيمية';
@@ -1004,7 +992,7 @@
               <th class="border border-slate-400 p-2">الرقم القومي</th>
               <th class="border border-slate-400 p-2">رقم الهاتف</th>
               <th class="border border-slate-400 p-2">الأمانة / الصفة</th>
-              <th class="border border-slate-400 p-2">الوحدة / المربع</th>
+              <th class="border border-slate-400 p-2">الوحدة / العنوان</th>
               <th class="border border-slate-400 p-2 w-20">التوقيع</th>
             </tr>
           </thead>
@@ -1016,9 +1004,9 @@
                   <td class="border border-slate-400 p-1.5 text-center font-bold">${idx + 1}</td>
                   <td class="border border-slate-400 p-1.5 font-bold">${m.full_name}</td>
                   <td class="border border-slate-400 p-1.5 text-center">${m.national_id || '-'}</td>
-                  <td class="border border-slate-400 p-1.5 text-center">${m.phone}</td>
-                  <td class="border border-slate-400 p-1.5 text-center">${m.secretariat_name} (${m.org_role})</td>
-                  <td class="border border-slate-400 p-1.5 text-center">${uName} ${m.zone ? `- ${m.zone}` : ''}</td>
+                  <td class="border border-slate-400 p-1.5 text-center">${m.phone || '-'}</td>
+                  <td class="border border-slate-400 p-1.5 text-center">${getSecName(m.secretariat_id)} (${m.position || 'عضو'})</td>
+                  <td class="border border-slate-400 p-1.5 text-center">${uName} ${m.address ? `- ${m.address}` : ''}</td>
                   <td class="border border-slate-400 p-1.5"></td>
                 </tr>
               `;
@@ -1048,8 +1036,8 @@
               return `
                 <tr>
                   <td class="border border-slate-400 p-1.5 text-center font-bold">${idx + 1}</td>
-                  <td class="border border-slate-400 p-1.5 font-bold">${m ? m.full_name : a.guest_name}</td>
-                  <td class="border border-slate-400 p-1.5 text-center">${m ? `${m.secretariat_name} - ${m.org_role}` : 'مشارك خارجي'}</td>
+                  <td class="border border-slate-400 p-1.5 font-bold">${m ? m.full_name : (a.guest_name || '-')}</td>
+                  <td class="border border-slate-400 p-1.5 text-center">${m ? `${getSecName(m.secretariat_id)} - ${m.position || 'عضو'}` : 'مشارك خارجي'}</td>
                   <td class="border border-slate-400 p-1.5 text-center">${m ? m.phone : (a.guest_phone || '-')}</td>
                   <td class="border border-slate-400 p-1.5"></td>
                 </tr>
@@ -1063,13 +1051,13 @@
       bodyHtml = `
         <h4 class="font-extrabold text-xs text-blue-950 mt-4 mb-1">أولاً: المشكلات الخدمية المرصودة (${issuesData.length})</h4>
         <table class="w-full border-collapse border border-slate-400 text-[11px]">
-          <thead><tr class="bg-blue-950 text-white"><th class="border p-1.5">م</th><th class="border p-1.5">المشكلة</th><th class="border p-1.5">التصنيف</th><th class="border p-1.5">الموقع</th><th class="border p-1.5">الحالة</th></tr></thead>
-          <tbody>${issuesData.map((i, idx) => `<tr><td class="border p-1.5 text-center">${idx+1}</td><td class="border p-1.5 font-bold">${i.title}</td><td class="border p-1.5 text-center">${i.category}</td><td class="border p-1.5 text-center">${i.zone||'-'}</td><td class="border p-1.5 text-center">${i.status}</td></tr>`).join('')}</tbody>
+          <thead><tr class="bg-blue-950 text-white"><th class="border p-1.5">م</th><th class="border p-1.5">مقدم الشكوى</th><th class="border p-1.5">التصنيف</th><th class="border p-1.5">التفاصيل</th><th class="border p-1.5">الحالة</th></tr></thead>
+          <tbody>${issuesData.map((i, idx) => `<tr><td class="border p-1.5 text-center">${idx+1}</td><td class="border p-1.5 font-bold">${i.citizen_name}</td><td class="border p-1.5 text-center">${i.category || '-'}</td><td class="border p-1.5">${i.details}</td><td class="border p-1.5 text-center">${i.status}</td></tr>`).join('')}</tbody>
         </table>
         <h4 class="font-extrabold text-xs text-blue-950 mt-4 mb-1">ثانياً: سجل الحالات الإنسانية (${casesData.length})</h4>
         <table class="w-full border-collapse border border-slate-400 text-[11px]">
           <thead><tr class="bg-blue-950 text-white"><th class="border p-1.5">م</th><th class="border p-1.5">اسم الحالة</th><th class="border p-1.5">نوع الاحتياج</th><th class="border p-1.5">الهاتف</th><th class="border p-1.5">الموقف</th></tr></thead>
-          <tbody>${casesData.map((c, idx) => `<tr><td class="border p-1.5 text-center">${idx+1}</td><td class="border p-1.5 font-bold">${c.beneficiary_name}</td><td class="border p-1.5 text-center">${c.need_type}</td><td class="border p-1.5 text-center">${c.phone||'-'}</td><td class="border p-1.5 text-center">${c.status}</td></tr>`).join('')}</tbody>
+          <tbody>${casesData.map((c, idx) => `<tr><td class="border p-1.5 text-center">${idx+1}</td><td class="border p-1.5 font-bold">${c.beneficiary_name}</td><td class="border p-1.5 text-center">${c.case_type || '-'}</td><td class="border p-1.5 text-center">${c.phone||'-'}</td><td class="border p-1.5 text-center">${c.status}</td></tr>`).join('')}</tbody>
         </table>
       `;
     } else {
@@ -1083,13 +1071,12 @@
         </div>
         <table class="w-full border-collapse border border-slate-400 text-[11px]">
           <thead><tr class="bg-blue-950 text-white"><th class="border p-1.5">م</th><th class="border p-1.5">الأمانة النوعية</th><th class="border p-1.5">عدد الأعضاء المسجلين</th></tr></thead>
-          <tbody>${secretariats.map((s, idx) => `<tr><td class="border p-1.5 text-center">${idx+1}</td><td class="border p-1.5 font-bold">${s.name}</td><td class="border p-1.5 text-center font-bold">${membersData.filter(m => m.secretariat_name === s.name).length}</td></tr>`).join('')}</tbody>
+          <tbody>${secretariats.map((s, idx) => `<tr><td class="border p-1.5 text-center">${idx+1}</td><td class="border p-1.5 font-bold">${s.name}</td><td class="border p-1.5 text-center font-bold">${membersData.filter(m => Number(m.secretariat_id) === s.id).length}</td></tr>`).join('')}</tbody>
         </table>
       `;
     }
 
     document.getElementById('officialSheetContainer').innerHTML = `
-      <!-- الترويسة التنظيمية الرسمية -->
       <div class="border-b-2 border-blue-950 pb-3 flex items-start justify-between gap-2 text-xs">
         <div class="space-y-0.5 font-extrabold text-blue-950 leading-relaxed">
           <div>جمهورية مصر العربية</div>
@@ -1108,14 +1095,12 @@
         </div>
       </div>
 
-      <!-- عنوان الكشف -->
       <div class="text-center my-3">
         <span class="inline-block bg-slate-100 border border-slate-400 px-6 py-1.5 rounded-lg font-extrabold text-sm text-blue-950">${sheetTitle}</span>
       </div>
 
       ${bodyHtml}
 
-      <!-- التوقيعات الرسمية المعتمدة -->
       <div class="grid grid-cols-2 gap-8 mt-10 pt-4 text-center text-xs font-extrabold text-blue-950">
         <div>
           <p>أمين التنظيم</p>
@@ -1132,8 +1117,8 @@
   }
 
   function exportMembersCSV() {
-    const headers = ['الاسم', 'الهاتف', 'الرقم القومي', 'الأمانة', 'الصفة', 'المربع'];
-    const rows = membersData.map(m => [m.full_name, m.phone, m.national_id || '', m.secretariat_name, m.org_role, m.zone || '']);
+    const headers = ['الاسم', 'الهاتف', 'الرقم القومي', 'الأمانة', 'الصفة', 'العنوان'];
+    const rows = membersData.map(m => [m.full_name, m.phone || '', m.national_id || '', getSecName(m.secretariat_id), m.position || '', m.address || '']);
     const csv = '\uFEFF' + [headers, ...rows].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const a = document.createElement('a');
@@ -1142,11 +1127,11 @@
     a.click();
   }
 
-  // الإدارة والصلاحيات
   async function saveUnitSettings() {
     const secretary_name = document.getElementById('editSecretaryName').value.trim();
     const org_secretary_name = document.getElementById('editOrgSecretaryName').value.trim();
-    await sb.from('org_units').update({ secretary_name, org_secretary_name }).eq('id', selectedUnitId);
+    const { error } = await sb.from('org_units').update({ secretary_name, org_secretary_name }).eq('id', selectedUnitId);
+    if (error) return alert(error.message);
     const { data } = await sb.from('org_units').select('*').order('created_at');
     allUnits = data || [];
     buildOfficialSheet();
@@ -1184,7 +1169,7 @@
 
   function toggleProfSecSelect() {
     const role = document.getElementById('profRole').value;
-    document.getElementById('profSec').classList.toggle('hidden', role !== 'secretariat_admin');
+    document.getElementById('profSec').classList.toggle('hidden', role !== 'secretariat_head');
   }
 
   async function saveUserProfile() {
@@ -1192,9 +1177,9 @@
     const full_name = document.getElementById('profName').value.trim();
     const role = document.getElementById('profRole').value;
     const unit_id = document.getElementById('profUnit').value;
-    const secretariat_name = role === 'secretariat_admin' ? document.getElementById('profSec').value : null;
+    const secretariat_id = role === 'secretariat_head' ? Number(document.getElementById('profSec').value) : null;
     if (!id || !full_name) return alert('يرجى إدخال User UID والاسم الكامل');
-    const { error } = await sb.from('profiles').upsert({ id, full_name, role, unit_id, secretariat_name, is_active: true });
+    const { error } = await sb.from('profiles').upsert({ id, full_name, role, unit_id, secretariat_id, is_active: true });
     if (error) return alert('خطأ: ' + error.message);
     document.getElementById('profUid').value = '';
     document.getElementById('profName').value = '';
@@ -1219,7 +1204,6 @@
     }).join('');
   }
 
-  // التنقل بين التبويبات
   function switchTab(tab) {
     document.querySelectorAll('.tab-section').forEach(s => s.classList.add('hidden'));
     document.getElementById(`tab-${tab}`).classList.remove('hidden');
