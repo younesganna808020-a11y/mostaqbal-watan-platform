@@ -261,6 +261,16 @@
           <button onclick="saveUnitSettings()" class="brand-gradient text-white text-xs font-bold px-4 py-2 rounded-xl">حفظ بيانات الترويسة والتوقيعات</button>
         </div>
 
+        <!-- إضافة أمانة نوعية جديدة أو فرعية -->
+        <div id="adminSecretariatsCard" class="bg-white rounded-2xl p-4 shadow-sm space-y-3">
+          <h2 class="font-extrabold text-slate-800">إضافة أمانة نوعية (مثل: أمانة السياحة والآثار، الاستثمار...)</h2>
+          <div class="flex flex-col sm:flex-row gap-2.5">
+            <input id="newSecretariatName" type="text" placeholder="اكتب اسم الأمانة النوعية (مثلاً: أمانة السياحة والآثار)" class="flex-1 border rounded-xl p-2.5 text-xs" />
+            <button type="button" onclick="createSecretariat()" class="brand-gradient text-white text-xs font-bold px-5 py-2.5 rounded-xl">+ إضافة الأمانة</button>
+          </div>
+          <div id="secretariatsBadgesList" class="flex flex-wrap gap-1.5 pt-1"></div>
+        </div>
+
         <div id="adminUnitsCard" class="bg-white rounded-2xl p-4 shadow-sm space-y-3">
           <h2 class="font-extrabold text-slate-800">إضافة وحدة تنظيمية فرعية (محافظة / قسم / شياخة)</h2>
           <div class="grid grid-cols-1 md:grid-cols-4 gap-2.5">
@@ -289,7 +299,6 @@
             </div>
           </div>
 
-          <!-- وضع إنشاء حساب جديد بالكامل من المنصة -->
           <div id="newUserFormFields" class="grid grid-cols-1 md:grid-cols-3 gap-2.5 bg-slate-50 p-3 rounded-xl border border-slate-200">
             <input id="newAccName" type="text" placeholder="الاسم الكامل للمسؤول *" class="border rounded-xl p-2.5 text-xs bg-white" />
             <input id="newAccEmail" type="email" placeholder="البريد الإلكتروني *" class="border rounded-xl p-2.5 text-xs text-left bg-white" dir="ltr" />
@@ -309,7 +318,6 @@
             <button type="button" onclick="createAndAssignUser()" class="brand-gradient text-white text-xs font-bold py-2.5 rounded-xl md:col-span-3 shadow">إنشاء الحساب وتفعيل الصلاحية فوراً</button>
           </div>
 
-          <!-- وضع ربط UID موجود مسبقاً -->
           <div id="uidUserFormFields" class="hidden grid grid-cols-1 md:grid-cols-3 gap-2.5 bg-slate-50 p-3 rounded-xl border border-slate-200">
             <input id="profUid" type="text" placeholder="User UID من Supabase Auth" class="border rounded-xl p-2.5 text-xs text-left bg-white" dir="ltr" />
             <input id="profNameUid" type="text" placeholder="الاسم الكامل للمسؤول" class="border rounded-xl p-2.5 text-xs bg-white" />
@@ -625,9 +633,11 @@
     document.getElementById('profUnit').innerHTML = accessibleUnits.map(u => `<option value="${u.id}">${u.name}</option>`).join('');
 
     if (!DELEGATOR_ROLES.includes(currentProfile.role)) {
+      document.getElementById('adminSecretariatsCard').classList.add('hidden');
       document.getElementById('adminUnitsCard').classList.add('hidden');
       document.getElementById('adminUsersCard').classList.add('hidden');
     } else {
+      document.getElementById('adminSecretariatsCard').classList.remove('hidden');
       document.getElementById('adminUnitsCard').classList.remove('hidden');
       document.getElementById('adminUsersCard').classList.remove('hidden');
       if (currentProfile.role !== 'super_admin') {
@@ -690,6 +700,20 @@
     document.getElementById('eSec').innerHTML = opts;
     document.getElementById('reportSecSelect').innerHTML = opts;
     document.getElementById('profSec').innerHTML = opts;
+  }
+
+  async function createSecretariat() {
+    const name = document.getElementById('newSecretariatName').value.trim();
+    if (!name) return alert('يرجى كتابة اسم الأمانة النوعية');
+    const { error } = await sb.from('secretariats').insert({ name });
+    if (error) return alert('تعذر إضافة الأمانة: ' + error.message);
+    document.getElementById('newSecretariatName').value = '';
+    const { data: secData } = await sb.from('secretariats').select('*').order('id');
+    secretariats = secData || [];
+    populateSecretariatDropdowns();
+    renderDashboard();
+    renderAdminLists();
+    alert('تمت إضافة الأمانة النوعية وتحديث القوائم بنجاح');
   }
 
   function renderDashboard() {
@@ -1284,6 +1308,10 @@
   }
 
   async function renderAdminLists() {
+    document.getElementById('secretariatsBadgesList').innerHTML = secretariats
+      .map(s => `<span class="text-[11px] bg-slate-100 border border-slate-200 text-slate-700 font-bold px-2.5 py-1 rounded-lg">${s.name}</span>`)
+      .join('');
+
     const accessibleIds = currentProfile.role === 'super_admin'
       ? allUnits.map(u => u.id)
       : getDescendantUnitIds(currentProfile.unit_id);
