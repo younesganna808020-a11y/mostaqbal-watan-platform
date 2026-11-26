@@ -261,7 +261,6 @@
           <button onclick="saveUnitSettings()" class="brand-gradient text-white text-xs font-bold px-4 py-2 rounded-xl">حفظ بيانات الترويسة والتوقيعات</button>
         </div>
 
-        <!-- إضافة أمانة نوعية جديدة أو فرعية -->
         <div id="adminSecretariatsCard" class="bg-white rounded-2xl p-4 shadow-sm space-y-3">
           <h2 class="font-extrabold text-slate-800">إضافة أمانة نوعية (مثل: أمانة السياحة والآثار، الاستثمار...)</h2>
           <div class="flex flex-col sm:flex-row gap-2.5">
@@ -286,7 +285,6 @@
           <div id="unitsTreeList" class="text-xs text-slate-600 space-y-1 pt-2"></div>
         </div>
 
-        <!-- إدارة وتوزيع صلاحيات الفريق مباشرة من المنصة -->
         <div id="adminUsersCard" class="bg-white rounded-2xl p-4 shadow-sm space-y-3">
           <div class="flex items-center justify-between flex-wrap gap-2">
             <div>
@@ -457,7 +455,7 @@
 
 <script>
   const DEFAULT_SUPABASE_URL = "https://xwflckjtgcmbbgpsvaim.supabase.co";
-  const DEFAULT_SUPABASE_KEY = "";
+  const DEFAULT_SUPABASE_KEY = "Sb_publishable_28aCCIeE7Tak9fgWmd3vfg_v1HFELVM";
 
   let sb = null;
   let currentUser = null;
@@ -508,8 +506,11 @@
   }
 
   window.addEventListener('DOMContentLoaded', async () => {
-    const url = localStorage.getItem('sb_url') || DEFAULT_SUPABASE_URL;
-    const key = localStorage.getItem('sb_key') || DEFAULT_SUPABASE_KEY;
+    const savedUrl = localStorage.getItem('sb_url');
+    const savedKey = localStorage.getItem('sb_key');
+    const url = savedUrl || DEFAULT_SUPABASE_URL;
+    const key = savedKey || DEFAULT_SUPABASE_KEY;
+
     if (!url || !key) {
       document.getElementById('setupScreen').classList.remove('hidden');
       return;
@@ -573,7 +574,7 @@
       return;
     }
     if (!prof || prof.is_active === false) {
-      alert('حسابك غير مفعل أو غير مرتبط بوحدة تنظيمية في جدول profiles.');
+      alert('حسابك غير مفعل أو غير مرتبط بملف تعريفي في جدول profiles.');
       document.getElementById('loginScreen').classList.remove('hidden');
       return;
     }
