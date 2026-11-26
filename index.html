@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>منصة التنظيم الحزبي | حزب مستقبل وطن</title>
+  <title>المنصة السحابية | حزب مستقبل وطن</title>
   <link rel="manifest" href="./manifest.json" />
   <meta name="theme-color" content="#0a2540" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -61,49 +61,114 @@
           <span class="text-xs text-amber-400 font-bold">حزب</span>
           <span class="text-sm font-extrabold">مستقبل وطن</span>
         </div>
-        <h1 class="text-xl font-extrabold text-slate-800">المنصة السحابية لإدارة التنظيم</h1>
+        <h1 class="text-xl font-extrabold text-slate-800">المنصة السحابية لحزب مستقبل وطن</h1>
         <p class="text-xs text-sky-700 font-bold mt-1">« كلنا نعمل من أجل مصر »</p>
       </div>
-      <form onsubmit="handleLogin(event)" class="space-y-3.5">
+
+      <form onsubmit="handleLogin(event)" class="space-y-4">
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">البريد الإلكتروني التنظيمي</label>
+          <label class="block text-xs font-bold text-slate-700 mb-1">البريد الإلكتروني</label>
           <input id="loginEmail" type="email" required placeholder="name@mostaqbalwatan.org" class="w-full border rounded-xl p-3 text-sm text-left" dir="ltr" />
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">كلمة المرور</label>
           <input id="loginPass" type="password" required placeholder="••••••••" class="w-full border rounded-xl p-3 text-sm text-left" dir="ltr" />
         </div>
+        <div id="loginError" class="hidden text-xs text-red-600 bg-red-50 p-2.5 rounded-lg font-bold"></div>
+        <button type="submit" id="loginBtn" class="w-full brand-gradient text-white font-bold py-3 rounded-xl shadow-lg">تسجيل الدخول</button>
+      </form>
 
-        <!-- تحديد أو إضافة الوحدة التنظيمية أثناء الدخول -->
-        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2.5">
-          <div class="flex items-center justify-between">
-            <label class="text-xs font-extrabold text-slate-800">الوحدة التنظيمية (اختياري / إضافة تلقائية)</label>
-            <span class="text-[10px] text-sky-700 font-bold">محافظة / قسم / وحدة</span>
+      <!-- زر نسيت كلمة المرور وزر إنشاء حساب جديد أسفل تسجيل الدخول -->
+      <div class="mt-4 pt-3 border-t border-slate-100 flex flex-col gap-2.5">
+        <button type="button" onclick="openForgotPasswordModal()" class="w-full py-2.5 rounded-xl border border-slate-200 text-sky-900 font-bold text-xs hover:bg-slate-50">
+          نسيت كلمة المرور؟ استعادة كلمة المرور
+        </button>
+        <button type="button" onclick="openRegisterScreen()" class="w-full py-2.5 rounded-xl bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold text-xs shadow-sm">
+          إنشاء حساب جديد
+        </button>
+      </div>
+
+      <div class="mt-4 text-center text-[11px] font-bold text-slate-400">
+        تطوير: يونس محمد الجبيهى
+      </div>
+    </div>
+  </div>
+
+  <!-- شاشة إنشاء حساب جديد + تسجيل بيانات الوحدة التنظيمية -->
+  <div id="registerScreen" class="hidden min-h-screen flex items-center justify-center p-4 brand-gradient">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+      <div class="text-center mb-5">
+        <div class="w-16 h-16 mx-auto rounded-full bg-slate-900 border-4 border-amber-400 flex flex-col items-center justify-center text-white shadow mb-2">
+          <span class="text-[10px] text-amber-400 font-bold">حزب</span>
+          <span class="text-xs font-extrabold">مستقبل وطن</span>
+        </div>
+        <h1 class="text-lg font-extrabold text-slate-800">إنشاء حساب جديد</h1>
+        <p class="text-xs text-sky-700 font-bold mt-0.5">المنصة السحابية لحزب مستقبل وطن</p>
+      </div>
+
+      <form onsubmit="handleSelfRegister(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">الاسم الكامل *</label>
+          <input id="regFullName" type="text" required placeholder="الاسم الرباعي للمسؤول" class="w-full border rounded-xl p-2.5 text-xs" />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">البريد الإلكتروني *</label>
+            <input id="regEmail" type="email" required placeholder="name@domain.com" class="w-full border rounded-xl p-2.5 text-xs text-left" dir="ltr" />
           </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">كلمة المرور *</label>
+            <input id="regPassword" type="password" minlength="6" required placeholder="6 أحرف فأكثر" class="w-full border rounded-xl p-2.5 text-xs text-left" dir="ltr" />
+          </div>
+        </div>
 
-          <select id="loginExistingUnit" onchange="onLoginExistingUnitChange()" class="w-full border rounded-xl p-2.5 text-xs font-bold bg-white">
-            <option value="">-- اختر وحدة موجودة أو أضف وحدة جديدة أدناه --</option>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">رقم الهاتف</label>
+            <input id="regPhone" type="tel" placeholder="01xxxxxxxxx" class="w-full border rounded-xl p-2.5 text-xs" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">الصفة التنظيمية *</label>
+            <select id="regRole" class="w-full border rounded-xl p-2.5 text-xs font-bold bg-white">
+              <option value="sheyakha_admin">أمين شياخة / وحدة حزبية</option>
+              <option value="org_secretary">أمين تنظيم</option>
+              <option value="secretariat_head">أمين أمانة نوعية</option>
+              <option value="district_admin">أمين قسم / مركز</option>
+              <option value="gov_admin">أمين محافظة</option>
+              <option value="member">معاون ميداني / عضو</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- بيانات الوحدة التنظيمية -->
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
+          <label class="block text-xs font-extrabold text-slate-800">بيانات الوحدة التنظيمية *</label>
+          <select id="regExistingUnit" onchange="onRegExistingUnitChange()" class="w-full border rounded-xl p-2.5 text-xs font-bold bg-white">
+            <option value="">-- اختر وحدة مسجلة أو اكتب اسم وحدة جديدة أدناه --</option>
           </select>
-
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <input id="loginNewUnitName" type="text" placeholder="اسم الوحدة (مثال: أمانة قسم العامرية)" class="border rounded-xl p-2.5 text-xs bg-white" />
-            <select id="loginNewUnitLevel" class="border rounded-xl p-2.5 text-xs font-bold bg-white">
+            <input id="regNewUnitName" type="text" placeholder="اسم الوحدة (مثال: أمانة قسم العامرية)" class="border rounded-xl p-2.5 text-xs bg-white" />
+            <select id="regNewUnitLevel" class="border rounded-xl p-2.5 text-xs font-bold bg-white">
               <option value="sheyakha">شياخة / وحدة حزبية</option>
               <option value="district">أمانة قسم / مركز</option>
               <option value="governorate">أمانة محافظة</option>
             </select>
           </div>
-          <p class="text-[10px] text-slate-500">إذا كتبت اسم وحدة غير مسجلة، سيتم إضافتها تلقائياً في سجل الوحدات التنظيمية عند الدخول.</p>
+          <p class="text-[10px] text-slate-500">تُضاف الوحدة الجديدة تلقائياً في سجل الوحدات التنظيمية عند التسجيل.</p>
         </div>
 
-        <div class="flex items-center justify-between text-xs">
-          <button type="button" onclick="openForgotPasswordModal()" class="text-sky-800 font-bold hover:underline">نسيت كلمة المرور؟</button>
-        </div>
-        <div id="loginError" class="hidden text-xs text-red-600 bg-red-50 p-2.5 rounded-lg font-bold"></div>
-        <button type="submit" id="loginBtn" class="w-full brand-gradient text-white font-bold py-3 rounded-xl shadow-lg">تسجيل الدخول</button>
+        <div id="registerError" class="hidden text-xs text-red-600 bg-red-50 p-2.5 rounded-lg font-bold"></div>
+
+        <button type="submit" id="registerBtn" class="w-full brand-gradient text-white font-bold py-3 rounded-xl shadow-lg">
+          تسجيل الحساب والوحدة والدخول
+        </button>
       </form>
-      <div class="mt-4 text-center">
-        <button onclick="resetConfig()" class="text-xs text-slate-400 underline">تعديل إعدادات ربط السيرفر</button>
+
+      <div class="mt-3 text-center">
+        <button type="button" onclick="backToLoginScreen()" class="text-xs text-sky-800 font-bold hover:underline">
+          لديك حساب بالفعل؟ العودة لتسجيل الدخول
+        </button>
       </div>
     </div>
   </div>
@@ -544,7 +609,6 @@
   let allUnits = [];
   let secretariats = [];
   let selectedUnitId = null;
-  let loginRequestedUnit = null;
   let membersData = [];
   let eventsData = [];
   let issuesData = [];
@@ -587,62 +651,116 @@
     document.getElementById('installPwaBtn')?.classList.add('hidden');
   }
 
-  async function populateLoginUnitsDropdown() {
+  async function populateRegisterUnitsDropdown() {
     if (!sb) return;
     const { data } = await sb.from('org_units').select('id, name, level').order('created_at');
-    const selectEl = document.getElementById('loginExistingUnit');
+    const selectEl = document.getElementById('regExistingUnit');
     if (!selectEl) return;
     const opts = (data || []).map(u => `<option value="${u.id}">${u.name}</option>`).join('');
-    selectEl.innerHTML = `<option value="">-- اختر وحدة موجودة أو أضف وحدة جديدة أدناه --</option>` + opts;
+    selectEl.innerHTML = `<option value="">-- اختر وحدة مسجلة أو اكتب اسم وحدة جديدة أدناه --</option>` + opts;
   }
 
-  function onLoginExistingUnitChange() {
-    const sel = document.getElementById('loginExistingUnit');
-    const newInput = document.getElementById('loginNewUnitName');
+  function onRegExistingUnitChange() {
+    const sel = document.getElementById('regExistingUnit');
+    const newInput = document.getElementById('regNewUnitName');
     if (sel && sel.value && newInput) {
       newInput.value = '';
     }
   }
 
-  async function resolveOrCreateLoginUnit(existingUnits) {
-    const selectedId = document.getElementById('loginExistingUnit')?.value || '';
-    const newName = (document.getElementById('loginNewUnitName')?.value || '').trim();
-    const newLevel = document.getElementById('loginNewUnitLevel')?.value || 'sheyakha';
+  async function openRegisterScreen() {
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('registerScreen').classList.remove('hidden');
+    document.getElementById('registerError').classList.add('hidden');
+    await populateRegisterUnitsDropdown();
+  }
 
-    let unitsList = existingUnits || [];
-    if (!unitsList.length) {
-      const { data } = await sb.from('org_units').select('*').order('created_at');
-      unitsList = data || [];
+  function backToLoginScreen() {
+    document.getElementById('registerScreen').classList.add('hidden');
+    document.getElementById('loginScreen').classList.remove('hidden');
+  }
+
+  async function handleSelfRegister(e) {
+    e.preventDefault();
+    const fullName = document.getElementById('regFullName').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const password = document.getElementById('regPassword').value;
+    const phone = document.getElementById('regPhone').value.trim();
+    const role = document.getElementById('regRole').value;
+    const existingUnitId = document.getElementById('regExistingUnit').value || null;
+    const newUnitName = document.getElementById('regNewUnitName').value.trim();
+    const newUnitLevel = document.getElementById('regNewUnitLevel').value;
+    const errEl = document.getElementById('registerError');
+    const btn = document.getElementById('registerBtn');
+
+    errEl.classList.add('hidden');
+
+    if (!fullName || !email || !password) {
+      errEl.textContent = 'يرجى إدخال الاسم الكامل والبريد الإلكتروني وكلمة المرور.';
+      errEl.classList.remove('hidden');
+      return;
+    }
+    if (!existingUnitId && !newUnitName) {
+      errEl.textContent = 'يرجى اختيار وحدة تنظيمية مسجلة أو كتابة اسم الوحدة التنظيمية الجديدة.';
+      errEl.classList.remove('hidden');
+      return;
     }
 
-    if (newName) {
-      const matched = unitsList.find(u => u.name.trim() === newName);
-      if (matched) return matched.id;
+    btn.disabled = true;
+    btn.textContent = 'جاري إنشاء الحساب وتسجيل الوحدة...';
 
-      const parentUnit =
-        unitsList.find(u => u.level === 'governorate') ||
-        unitsList[0] ||
-        null;
+    const { data: signUpData, error: signUpErr } = await sb.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: fullName, phone, role }
+      }
+    });
 
-      const payload = {
-        name: newName,
-        level: newLevel,
-        parent_id: parentUnit ? parentUnit.id : null
-      };
+    if (signUpErr || !signUpData?.user) {
+      btn.disabled = false;
+      btn.textContent = 'تسجيل الحساب والوحدة والدخول';
+      errEl.textContent = 'تعذر إنشاء الحساب: ' + (signUpErr?.message || 'خطأ غير متوقع');
+      errEl.classList.remove('hidden');
+      return;
+    }
 
-      const { data: created, error } = await sb
-        .from('org_units')
-        .insert(payload)
-        .select('*')
-        .single();
+    const { error: rpcErr } = await sb.rpc('self_register_with_unit', {
+      p_user_id: signUpData.user.id,
+      p_full_name: fullName,
+      p_phone: phone,
+      p_role: role,
+      p_existing_unit_id: existingUnitId,
+      p_new_unit_name: newUnitName || null,
+      p_new_unit_level: newUnitLevel
+    });
 
-      if (!error && created) {
-        return created.id;
+    if (rpcErr) {
+      btn.disabled = false;
+      btn.textContent = 'تسجيل الحساب والوحدة والدخول';
+      errEl.textContent = 'تم إنشاء المستخدم لكن تعذر ربط الوحدة: ' + rpcErr.message;
+      errEl.classList.remove('hidden');
+      return;
+    }
+
+    if (signUpData.session) {
+      currentUser = signUpData.user;
+      document.getElementById('registerScreen').classList.add('hidden');
+      await initApp();
+    } else {
+      const { data: loginData, error: loginErr } = await sb.auth.signInWithPassword({ email, password });
+      btn.disabled = false;
+      btn.textContent = 'تسجيل الحساب والوحدة والدخول';
+      if (!loginErr && loginData?.user) {
+        currentUser = loginData.user;
+        document.getElementById('registerScreen').classList.add('hidden');
+        await initApp();
+      } else {
+        alert('تم إنشاء الحساب وتسجيل الوحدة التنظيمية بنجاح. يمكنك الآن تسجيل الدخول.');
+        document.getElementById('loginEmail').value = email;
+        backToLoginScreen();
       }
     }
-
-    if (selectedId) return selectedId;
-    return null;
   }
 
   window.addEventListener('DOMContentLoaded', async () => {
@@ -660,6 +778,7 @@
     sb.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') {
         document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('registerScreen').classList.add('hidden');
         document.getElementById('appScreen').classList.add('hidden');
         document.getElementById('recoveryScreen').classList.remove('hidden');
       }
@@ -673,7 +792,6 @@
 
     if (!session) {
       document.getElementById('loginScreen').classList.remove('hidden');
-      await populateLoginUnitsDropdown();
     } else {
       currentUser = session.user;
       await initApp();
@@ -735,7 +853,6 @@
     history.replaceState(null, '', window.location.pathname);
     document.getElementById('recoveryScreen').classList.add('hidden');
     document.getElementById('loginScreen').classList.remove('hidden');
-    await populateLoginUnitsDropdown();
   }
 
   function openAdminChangePassModal(userId, fullName) {
@@ -778,9 +895,6 @@
     }
 
     currentUser = data.user;
-    const { data: existingUnits } = await sb.from('org_units').select('*').order('created_at');
-    loginRequestedUnit = await resolveOrCreateLoginUnit(existingUnits || []);
-
     document.getElementById('loginScreen').classList.add('hidden');
     await initApp();
   }
@@ -799,27 +913,14 @@
     if (error) {
       alert('خطأ في الاتصال بقاعدة البيانات: ' + error.message);
       document.getElementById('loginScreen').classList.remove('hidden');
-      await populateLoginUnitsDropdown();
       return;
     }
     if (!prof || prof.is_active === false) {
       alert('حسابك غير مفعل أو غير مرتبط بملف تعريفي في جدول profiles.');
       document.getElementById('loginScreen').classList.remove('hidden');
-      await populateLoginUnitsDropdown();
       return;
     }
-
-    if (loginRequestedUnit && prof.unit_id !== loginRequestedUnit) {
-      const { data: updatedProf } = await sb
-        .from('profiles')
-        .update({ unit_id: loginRequestedUnit })
-        .eq('id', prof.id)
-        .select('*')
-        .maybeSingle();
-      currentProfile = updatedProf || { ...prof, unit_id: loginRequestedUnit };
-    } else {
-      currentProfile = prof;
-    }
+    currentProfile = prof;
 
     const [unitsRes, secRes] = await Promise.all([
       sb.from('org_units').select('*').order('created_at'),
@@ -830,13 +931,6 @@
 
     populateSecretariatDropdowns();
     setupHierarchyFilter();
-
-    if (loginRequestedUnit && allUnits.some(u => u.id === loginRequestedUnit)) {
-      selectedUnitId = loginRequestedUnit;
-      const filterSelect = document.getElementById('activeUnitFilter');
-      if (filterSelect) filterSelect.value = selectedUnitId;
-    }
-    loginRequestedUnit = null;
 
     document.getElementById('appScreen').classList.remove('hidden');
     document.getElementById('welcomeUserName').textContent = `${currentProfile.full_name} (${ROLE_LABELS[currentProfile.role] || currentProfile.role})`;
