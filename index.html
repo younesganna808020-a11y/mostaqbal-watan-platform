@@ -83,7 +83,6 @@
         <button type="submit" id="loginBtn" class="w-full brand-gradient text-white font-bold py-3 rounded-xl shadow-lg">تسجيل الدخول</button>
       </form>
 
-      <!-- زر نسيت كلمة المرور وزر إنشاء حساب جديد أسفل تسجيل الدخول -->
       <div class="mt-4 pt-3 border-t border-slate-100 flex flex-col gap-2.5">
         <button type="button" onclick="openForgotPasswordModal()" class="w-full py-2.5 rounded-xl border border-slate-200 text-sky-900 font-bold text-xs hover:bg-slate-50">
           نسيت كلمة المرور؟ استعادة كلمة المرور
@@ -151,7 +150,6 @@
           </div>
         </div>
 
-        <!-- بيانات الوحدة التنظيمية -->
         <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
           <label class="block text-xs font-extrabold text-slate-800">بيانات الوحدة التنظيمية *</label>
           <select id="regExistingUnit" onchange="onRegExistingUnitChange()" class="w-full border rounded-xl p-2.5 text-xs font-bold bg-white">
@@ -225,7 +223,6 @@
         </div>
       </div>
 
-      <!-- فلتر النطاق الهرمي -->
       <div id="scopeFilterBar" class="hidden max-w-5xl mx-auto mt-3 pt-2.5 border-t border-white/15 flex flex-wrap items-center gap-2">
         <span class="text-xs text-sky-200 font-bold">نطاق العرض:</span>
         <select id="activeUnitFilter" onchange="onScopeChange()" class="bg-slate-900/70 text-white border border-white/20 rounded-lg px-3 py-1 text-xs font-bold flex-1 min-w-[200px]"></select>
@@ -276,8 +273,8 @@
             <h2 class="font-extrabold text-slate-800">سجل الأعضاء والمتطوعين</h2>
             <button onclick="openMemberModal()" class="brand-gradient text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow">+ إضافة عضو / متطوع</button>
           </div>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
-            <input id="searchMemberInput" oninput="renderMembers()" type="text" placeholder="بحث بالاسم أو الهاتف أو الرقم القومي..." class="border rounded-xl p-2.5 text-xs" />
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
+            <input id="searchMemberInput" oninput="renderMembers()" type="text" placeholder="بحث بالاسم أو الهاتف أو القومي أو اللجنة..." class="border rounded-xl p-2.5 text-xs" />
             <select id="filterMemberSec" onchange="renderMembers()" class="border rounded-xl p-2.5 text-xs font-bold">
               <option value="">كل الأمانات النوعية</option>
             </select>
@@ -290,6 +287,13 @@
               <option>عضو عامل</option>
               <option>متطوع</option>
               <option>مندوب انتخابات</option>
+            </select>
+            <select id="filterMemberCommitment" onchange="renderMembers()" class="border rounded-xl p-2.5 text-xs font-bold">
+              <option value="">كل مواقف الالتزام</option>
+              <option>ملتزم</option>
+              <option>نشط جداً</option>
+              <option>يحتاج متابعة</option>
+              <option>غير متفرغ</option>
             </select>
           </div>
         </div>
@@ -448,7 +452,6 @@
         </div>
       </section>
 
-      <!-- اسم المطور في جميع التبويبات أثناء العرض فقط (يُحذف عند الطباعة) -->
       <div class="mt-5 text-center text-xs font-bold text-slate-500 no-print">
         تطوير: <span class="text-slate-700 font-extrabold">يونس محمد الجبيهى</span>
       </div>
@@ -495,25 +498,79 @@
     </div>
   </div>
 
-  <!-- 1. إضافة عضو -->
+  <!-- 1. إضافة عضو / متطوع (بيانات تنظيمية واجتماعية وانتخابية كاملة) -->
   <div id="memberModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-3 max-h-[90vh] overflow-y-auto">
-      <h3 class="font-extrabold text-slate-800">بيانات العضو / المتطوع</h3>
+    <div class="bg-white rounded-2xl max-w-lg w-full p-5 space-y-3 max-h-[90vh] overflow-y-auto">
+      <h3 class="font-extrabold text-slate-800 text-sm">بيانات العضو / المتطوع الكاملة</h3>
+
       <input id="mName" type="text" placeholder="الاسم الرباعي *" class="w-full border rounded-xl p-2.5 text-xs" />
-      <input id="mPhone" type="tel" placeholder="رقم الهاتف *" class="w-full border rounded-xl p-2.5 text-xs" />
-      <input id="mNid" type="text" maxlength="14" placeholder="الرقم القومي (14 رقم)" class="w-full border rounded-xl p-2.5 text-xs" />
-      <select id="mSec" class="w-full border rounded-xl p-2.5 text-xs font-bold"></select>
-      <select id="mRole" class="w-full border rounded-xl p-2.5 text-xs font-bold">
-        <option>عضو هيئة مكتب</option>
-        <option>أمين شياخة</option>
-        <option>أمين تنظيم</option>
-        <option>أمين أمانة نوعية</option>
-        <option>عضو عامل</option>
-        <option>متطوع</option>
-        <option>مندوب انتخابات</option>
-      </select>
-      <input id="mZone" type="text" placeholder="العنوان / المربع السكني" class="w-full border rounded-xl p-2.5 text-xs" />
-      <input id="mMemNo" type="text" placeholder="رقم العضوية / الكارنيه (إن وجد)" class="w-full border rounded-xl p-2.5 text-xs" />
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <input id="mPhone" type="tel" placeholder="رقم الهاتف *" class="w-full border rounded-xl p-2.5 text-xs" />
+        <input id="mNid" type="text" maxlength="14" placeholder="الرقم القومي (14 رقم)" class="w-full border rounded-xl p-2.5 text-xs" />
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <select id="mGender" class="w-full border rounded-xl p-2.5 text-xs font-bold bg-white">
+          <option value="ذكر">النوع: ذكر</option>
+          <option value="أنثى">النوع: أنثى</option>
+        </select>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-500 mb-0.5">تاريخ الميلاد</label>
+          <input id="mBirthDate" type="date" class="w-full border rounded-xl p-2 text-xs" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <select id="mSec" class="w-full border rounded-xl p-2.5 text-xs font-bold bg-white"></select>
+        <select id="mRole" class="w-full border rounded-xl p-2.5 text-xs font-bold bg-white">
+          <option>عضو هيئة مكتب</option>
+          <option>أمين شياخة</option>
+          <option>أمين تنظيم</option>
+          <option>أمين أمانة نوعية</option>
+          <option>عضو عامل</option>
+          <option>متطوع</option>
+          <option>مندوب انتخابات</option>
+        </select>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <input id="mEducation" type="text" placeholder="المؤهل الدراسي (مثال: بكالوريوس، دبلوم...)" class="w-full border rounded-xl p-2.5 text-xs" />
+        <input id="mJob" type="text" placeholder="المهنة / جهة العمل" class="w-full border rounded-xl p-2.5 text-xs" />
+      </div>
+
+      <input id="mZone" type="text" placeholder="العنوان التفصيلي / المربع السكني / الشارع" class="w-full border rounded-xl p-2.5 text-xs" />
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <input id="mMemNo" type="text" placeholder="رقم العضوية / الكارنيه (إن وجد)" class="w-full border rounded-xl p-2.5 text-xs" />
+        <select id="mMembershipStatus" class="w-full border rounded-xl p-2.5 text-xs font-bold bg-white">
+          <option value="عضو عامل">حالة العضوية: عضو عامل</option>
+          <option value="عضو منتسب">حالة العضوية: عضو منتسب</option>
+          <option value="متطوع ميداني">حالة العضوية: متطوع ميداني</option>
+          <option value="تحت التفعيل">حالة العضوية: تحت التفعيل</option>
+        </select>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <input id="mCommittee" type="text" placeholder="اللجنة الانتخابية / المدرسة" class="w-full border rounded-xl p-2.5 text-xs" />
+        <input id="mElectoralSerial" type="text" placeholder="الرقم في الكشف الانتخابي" class="w-full border rounded-xl p-2.5 text-xs" />
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <select id="mCommitment" class="w-full border rounded-xl p-2.5 text-xs font-bold bg-white">
+          <option value="ملتزم">الالتزام: ملتزم</option>
+          <option value="نشط جداً">الالتزام: نشط جداً</option>
+          <option value="يحتاج متابعة">الالتزام: يحتاج متابعة</option>
+          <option value="غير متفرغ">الالتزام: غير متفرغ</option>
+        </select>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-500 mb-0.5">تاريخ الانضمام</label>
+          <input id="mJoinedAt" type="date" class="w-full border rounded-xl p-2 text-xs" />
+        </div>
+      </div>
+
+      <textarea id="mNotes" rows="2" placeholder="ملاحظات تنظيمية أو مهارات أو مسؤوليات إضافية..." class="w-full border rounded-xl p-2.5 text-xs"></textarea>
+
       <div class="flex gap-2 pt-2">
         <button onclick="saveMember()" class="flex-1 brand-gradient text-white font-bold py-2.5 rounded-xl text-xs">حفظ</button>
         <button onclick="closeModal('memberModal')" class="px-4 bg-slate-100 text-slate-700 font-bold py-2.5 rounded-xl text-xs">إلغاء</button>
@@ -1103,12 +1160,19 @@
     const q = document.getElementById('searchMemberInput').value.trim();
     const secId = document.getElementById('filterMemberSec').value;
     const role = document.getElementById('filterMemberRole').value;
+    const commitment = document.getElementById('filterMemberCommitment').value;
 
     const filtered = membersData.filter(m => {
-      const matchQ = !q || m.full_name.includes(q) || (m.phone && m.phone.includes(q)) || (m.national_id && m.national_id.includes(q));
+      const matchQ = !q
+        || (m.full_name && m.full_name.includes(q))
+        || (m.phone && m.phone.includes(q))
+        || (m.national_id && m.national_id.includes(q))
+        || (m.electoral_committee && m.electoral_committee.includes(q))
+        || (m.job_title && m.job_title.includes(q));
       const matchSec = !secId || String(m.secretariat_id) === secId;
       const matchRole = !role || m.position === role;
-      return matchQ && matchSec && matchRole;
+      const matchCom = !commitment || (m.commitment_status || 'ملتزم') === commitment;
+      return matchQ && matchSec && matchRole && matchCom;
     });
 
     const list = document.getElementById('membersList');
@@ -1120,17 +1184,28 @@
     list.innerHTML = filtered.map(m => {
       const unitName = allUnits.find(u => u.id === m.unit_id)?.name || '';
       const secName = getSecName(m.secretariat_id);
+      const extraMeta = [
+        m.gender ? `النوع: ${m.gender}` : '',
+        m.job_title ? `العمل: ${m.job_title}` : '',
+        m.education ? `المؤهل: ${m.education}` : '',
+        m.electoral_committee ? `لجنة: ${m.electoral_committee}` : '',
+        m.commitment_status ? `الالتزام: ${m.commitment_status}` : ''
+      ].filter(Boolean).join(' | ');
+
       return `
-        <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between gap-2">
-          <div>
+        <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex items-start justify-between gap-2">
+          <div class="space-y-1">
             <div class="flex items-center gap-2 flex-wrap">
               <h4 class="font-extrabold text-sm text-slate-800">${m.full_name}</h4>
               <span class="text-[10px] bg-sky-100 text-sky-900 font-bold px-2 py-0.5 rounded-full">${m.position || 'عضو'}</span>
               <span class="text-[10px] bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-full">${secName}</span>
+              ${m.membership_status ? `<span class="text-[10px] bg-emerald-100 text-emerald-900 font-bold px-2 py-0.5 rounded-full">${m.membership_status}</span>` : ''}
             </div>
-            <p class="text-xs text-slate-500 mt-1">📞 ${m.phone || '-'} ${m.address ? `| 📍 ${m.address}` : ''} | 🏢 ${unitName}</p>
+            <p class="text-xs text-slate-600">📞 ${m.phone || '-'} ${m.national_id ? `| 🪪 ${m.national_id}` : ''} ${m.address ? `| 📍 ${m.address}` : ''} | 🏢 ${unitName}</p>
+            ${extraMeta ? `<p class="text-[11px] text-slate-500">${extraMeta}</p>` : ''}
+            ${m.notes ? `<p class="text-[11px] text-sky-900 bg-sky-50 px-2 py-1 rounded-lg">ملاحظات: ${m.notes}</p>` : ''}
           </div>
-          <button onclick="deleteMember('${m.id}')" class="text-rose-500 text-xs font-bold px-2 py-1 hover:bg-rose-50 rounded-lg">حذف</button>
+          <button onclick="deleteMember('${m.id}')" class="text-rose-500 text-xs font-bold px-2 py-1 hover:bg-rose-50 rounded-lg shrink-0">حذف</button>
         </div>
       `;
     }).join('');
@@ -1140,8 +1215,18 @@
     document.getElementById('mName').value = '';
     document.getElementById('mPhone').value = '';
     document.getElementById('mNid').value = '';
+    document.getElementById('mGender').value = 'ذكر';
+    document.getElementById('mBirthDate').value = '';
+    document.getElementById('mEducation').value = '';
+    document.getElementById('mJob').value = '';
     document.getElementById('mZone').value = '';
     document.getElementById('mMemNo').value = '';
+    document.getElementById('mMembershipStatus').value = 'عضو عامل';
+    document.getElementById('mCommittee').value = '';
+    document.getElementById('mElectoralSerial').value = '';
+    document.getElementById('mCommitment').value = 'ملتزم';
+    document.getElementById('mJoinedAt').value = new Date().toISOString().split('T')[0];
+    document.getElementById('mNotes').value = '';
     if (currentProfile.secretariat_id) {
       document.getElementById('mSec').value = currentProfile.secretariat_id;
     }
@@ -1154,10 +1239,20 @@
       full_name: document.getElementById('mName').value.trim(),
       phone: document.getElementById('mPhone').value.trim(),
       national_id: document.getElementById('mNid').value.trim(),
+      gender: document.getElementById('mGender').value,
+      birth_date: document.getElementById('mBirthDate').value || null,
       secretariat_id: Number(document.getElementById('mSec').value) || 1,
       position: document.getElementById('mRole').value,
+      education: document.getElementById('mEducation').value.trim(),
+      job_title: document.getElementById('mJob').value.trim(),
       address: document.getElementById('mZone').value.trim(),
       membership_number: document.getElementById('mMemNo').value.trim(),
+      membership_status: document.getElementById('mMembershipStatus').value,
+      electoral_committee: document.getElementById('mCommittee').value.trim(),
+      electoral_serial: document.getElementById('mElectoralSerial').value.trim(),
+      commitment_status: document.getElementById('mCommitment').value,
+      joined_at: document.getElementById('mJoinedAt').value || null,
+      notes: document.getElementById('mNotes').value.trim(),
       created_by: currentUser.id
     };
     if (!payload.full_name || !payload.phone) return alert('الاسم ورقم الهاتف مطلوبان');
@@ -1415,21 +1510,23 @@
       }
 
       bodyHtml = `
-        <table class="w-full border-collapse border border-slate-400 text-[11px] mt-4">
+        <table class="w-full border-collapse border border-slate-400 text-[10.5px] mt-4">
           <thead>
             <tr class="bg-blue-950 text-white">
-              <th class="border border-slate-400 p-2 w-8">م</th>
-              <th class="border border-slate-400 p-2">الاسم الرباعي</th>
-              <th class="border border-slate-400 p-2">الرقم القومي</th>
-              <th class="border border-slate-400 p-2">رقم الهاتف</th>
-              <th class="border border-slate-400 p-2">الأمانة / الصفة</th>
-              <th class="border border-slate-400 p-2">الوحدة / العنوان</th>
-              <th class="border border-slate-400 p-2 w-20">التوقيع</th>
+              <th class="border border-slate-400 p-1.5 w-7">م</th>
+              <th class="border border-slate-400 p-1.5">الاسم الرباعي</th>
+              <th class="border border-slate-400 p-1.5">الرقم القومي</th>
+              <th class="border border-slate-400 p-1.5">رقم الهاتف</th>
+              <th class="border border-slate-400 p-1.5">الأمانة / الصفة</th>
+              <th class="border border-slate-400 p-1.5">العمل / المؤهل</th>
+              <th class="border border-slate-400 p-1.5">اللجنة / العنوان</th>
+              <th class="border border-slate-400 p-1.5 w-16">التوقيع</th>
             </tr>
           </thead>
           <tbody>
             ${rows.length ? rows.map((m, idx) => {
-              const uName = allUnits.find(u => u.id === m.unit_id)?.name || '';
+              const workEdu = [m.job_title, m.education].filter(Boolean).join(' - ') || '-';
+              const locCom = [m.electoral_committee ? `لجنة: ${m.electoral_committee}` : '', m.address || ''].filter(Boolean).join(' | ') || '-';
               return `
                 <tr class="${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}">
                   <td class="border border-slate-400 p-1.5 text-center font-bold">${idx + 1}</td>
@@ -1437,11 +1534,12 @@
                   <td class="border border-slate-400 p-1.5 text-center">${m.national_id || '-'}</td>
                   <td class="border border-slate-400 p-1.5 text-center">${m.phone || '-'}</td>
                   <td class="border border-slate-400 p-1.5 text-center">${getSecName(m.secretariat_id)} (${m.position || 'عضو'})</td>
-                  <td class="border border-slate-400 p-1.5 text-center">${uName} ${m.address ? `- ${m.address}` : ''}</td>
+                  <td class="border border-slate-400 p-1.5 text-center">${workEdu}</td>
+                  <td class="border border-slate-400 p-1.5 text-center">${locCom}</td>
                   <td class="border border-slate-400 p-1.5"></td>
                 </tr>
               `;
-            }).join('') : `<tr><td colspan="7" class="border border-slate-400 p-4 text-center text-slate-400">لا توجد بيانات مسجلة في هذا التصنيف</td></tr>`}
+            }).join('') : `<tr><td colspan="8" class="border border-slate-400 p-4 text-center text-slate-400">لا توجد بيانات مسجلة في هذا التصنيف</td></tr>`}
           </tbody>
         </table>
       `;
@@ -1552,9 +1650,20 @@
   }
 
   function exportMembersCSV() {
-    const headers = ['الاسم', 'الهاتف', 'الرقم القومي', 'الأمانة', 'الصفة', 'العنوان'];
-    const rows = membersData.map(m => [m.full_name, m.phone || '', m.national_id || '', getSecName(m.secretariat_id), m.position || '', m.address || '']);
-    const csv = '\uFEFF' + [headers, ...rows].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+    const headers = [
+      'الاسم', 'الهاتف', 'الرقم القومي', 'النوع', 'تاريخ الميلاد',
+      'الأمانة', 'الصفة', 'المؤهل', 'المهنة', 'حالة العضوية',
+      'رقم العضوية', 'اللجنة الانتخابية', 'الرقم الانتخابي',
+      'الالتزام', 'تاريخ الانضمام', 'العنوان', 'ملاحظات'
+    ];
+    const rows = membersData.map(m => [
+      m.full_name, m.phone || '', m.national_id || '', m.gender || '', m.birth_date || '',
+      getSecName(m.secretariat_id), m.position || '', m.education || '', m.job_title || '',
+      m.membership_status || '', m.membership_number || '', m.electoral_committee || '',
+      m.electoral_serial || '', m.commitment_status || '', m.joined_at || '',
+      m.address || '', m.notes || ''
+    ]);
+    const csv = '\uFEFF' + [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
