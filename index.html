@@ -276,23 +276,46 @@
           <div id="unitsTreeList" class="text-xs text-slate-600 space-y-1 pt-2"></div>
         </div>
 
+        <!-- إدارة وتوزيع صلاحيات الفريق مباشرة من المنصة -->
         <div id="adminUsersCard" class="bg-white rounded-2xl p-4 shadow-sm space-y-3">
-          <h2 class="font-extrabold text-slate-800">إدارة صلاحيات الفريق والمستخدمين</h2>
-          <p class="text-xs text-slate-500">أنشئ الحساب أولاً من (Supabase &gt; Authentication &gt; Users) ثم انسخ الـ User UID هنا لتحديد وحدته وصلاحيته.</p>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
-            <input id="profUid" type="text" placeholder="User UID من Supabase Auth" class="border rounded-xl p-2.5 text-xs text-left" dir="ltr" />
-            <input id="profName" type="text" placeholder="الاسم الكامل للمسؤول" class="border rounded-xl p-2.5 text-xs" />
-            <select id="profRole" onchange="toggleProfSecSelect()" class="border rounded-xl p-2.5 text-xs font-bold">
-              <option value="org_secretary">أمين تنظيم الوحدة</option>
-              <option value="unit_admin">أمين الوحدة الحزبية</option>
-              <option value="secretariat_head">أمين أمانة نوعية</option>
-              <option value="member">معاون ميداني / عضو</option>
-              <option value="super_admin">مدير عام المنصة</option>
-            </select>
-            <select id="profUnit" class="border rounded-xl p-2.5 text-xs font-bold"></select>
-            <select id="profSec" class="hidden border rounded-xl p-2.5 text-xs font-bold"></select>
-            <button onclick="saveUserProfile()" class="brand-gradient text-white text-xs font-bold py-2.5 rounded-xl">حفظ وتفعيل الصلاحية</button>
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <div>
+              <h2 class="font-extrabold text-slate-800">إنشاء الحسابات وتوزيع الصلاحيات</h2>
+              <p class="text-xs text-slate-500">يتم إنشاء الحساب وتفعيل صلاحيته مباشرة ضمن النطاق التنظيمي المسموح به لدورك.</p>
+            </div>
+            <div class="flex gap-1 bg-slate-100 p-1 rounded-xl text-xs font-bold">
+              <button type="button" id="modeNewUserBtn" onclick="setAuthFormMode('new')" class="px-3 py-1.5 rounded-lg brand-gradient text-white">إنشاء حساب جديد</button>
+              <button type="button" id="modeUidUserBtn" onclick="setAuthFormMode('uid')" class="px-3 py-1.5 rounded-lg text-slate-600">ربط UID موجود</button>
+            </div>
           </div>
+
+          <!-- وضع إنشاء حساب جديد بالكامل من المنصة -->
+          <div id="newUserFormFields" class="grid grid-cols-1 md:grid-cols-3 gap-2.5 bg-slate-50 p-3 rounded-xl border border-slate-200">
+            <input id="newAccName" type="text" placeholder="الاسم الكامل للمسؤول *" class="border rounded-xl p-2.5 text-xs bg-white" />
+            <input id="newAccEmail" type="email" placeholder="البريد الإلكتروني *" class="border rounded-xl p-2.5 text-xs text-left bg-white" dir="ltr" />
+            <input id="newAccPass" type="password" placeholder="كلمة المرور (6 أحرف فأكثر) *" class="border rounded-xl p-2.5 text-xs text-left bg-white" dir="ltr" />
+            <input id="newAccPhone" type="tel" placeholder="رقم الهاتف (اختياري)" class="border rounded-xl p-2.5 text-xs bg-white" />
+            <select id="profRole" onchange="toggleProfSecSelect()" class="border rounded-xl p-2.5 text-xs font-bold bg-white">
+              <option value="sheyakha_admin">أمين شياخة / وحدة</option>
+              <option value="org_secretary">أمين تنظيم</option>
+              <option value="secretariat_head">أمين أمانة نوعية</option>
+              <option value="district_admin">أمين قسم / مركز</option>
+              <option value="gov_admin">أمين محافظة</option>
+              <option value="member">معاون ميداني / عضو</option>
+              <option value="super_admin">الأمانة المركزية / مدير عام</option>
+            </select>
+            <select id="profUnit" class="border rounded-xl p-2.5 text-xs font-bold bg-white"></select>
+            <select id="profSec" class="hidden border rounded-xl p-2.5 text-xs font-bold bg-white md:col-span-2"></select>
+            <button type="button" onclick="createAndAssignUser()" class="brand-gradient text-white text-xs font-bold py-2.5 rounded-xl md:col-span-3 shadow">إنشاء الحساب وتفعيل الصلاحية فوراً</button>
+          </div>
+
+          <!-- وضع ربط UID موجود مسبقاً -->
+          <div id="uidUserFormFields" class="hidden grid grid-cols-1 md:grid-cols-3 gap-2.5 bg-slate-50 p-3 rounded-xl border border-slate-200">
+            <input id="profUid" type="text" placeholder="User UID من Supabase Auth" class="border rounded-xl p-2.5 text-xs text-left bg-white" dir="ltr" />
+            <input id="profNameUid" type="text" placeholder="الاسم الكامل للمسؤول" class="border rounded-xl p-2.5 text-xs bg-white" />
+            <button type="button" onclick="saveUserProfileByUid()" class="brand-gradient text-white text-xs font-bold py-2.5 rounded-xl shadow">حفظ وتفعيل الصلاحية للـ UID</button>
+          </div>
+
           <div id="profilesList" class="space-y-2 pt-2"></div>
         </div>
       </section>
@@ -442,12 +465,24 @@
   let deferredPrompt = null;
 
   const ROLE_LABELS = {
-    super_admin: 'مدير عام المنصة',
+    super_admin: 'الأمانة المركزية / مدير عام',
+    gov_admin: 'أمين محافظة',
+    district_admin: 'أمين قسم / مركز',
+    sheyakha_admin: 'أمين شياخة / وحدة',
     unit_admin: 'أمين الوحدة الحزبية',
     org_secretary: 'أمين التنظيم',
     secretariat_head: 'أمين أمانة نوعية',
     member: 'معاون ميداني'
   };
+
+  const DELEGATOR_ROLES = [
+    'super_admin',
+    'gov_admin',
+    'district_admin',
+    'sheyakha_admin',
+    'unit_admin',
+    'org_secretary'
+  ];
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(() => {});
@@ -525,12 +560,12 @@
   async function initApp() {
     const { data: prof, error } = await sb.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
     if (error) {
-      alert('خطأ في الاتصال بقاعدة البيانات: ' + error.message + '\nتأكد من صحة مفتاح Anon / Publishable Key في إعدادات الربط.');
+      alert('خطأ في الاتصال بقاعدة البيانات: ' + error.message);
       document.getElementById('loginScreen').classList.remove('hidden');
       return;
     }
-    if (!prof) {
-      alert('حسابك مسجل في المصادقة ولكن لم يتم ربطه بوحدة تنظيمية في جدول profiles بعد.');
+    if (!prof || prof.is_active === false) {
+      alert('حسابك غير مفعل أو غير مرتبط بوحدة تنظيمية في جدول profiles.');
       document.getElementById('loginScreen').classList.remove('hidden');
       return;
     }
@@ -589,9 +624,16 @@
     document.getElementById('newUnitParent').innerHTML = accessibleUnits.map(u => `<option value="${u.id}">${u.name}</option>`).join('');
     document.getElementById('profUnit').innerHTML = accessibleUnits.map(u => `<option value="${u.id}">${u.name}</option>`).join('');
 
-    if (currentProfile.role === 'member' || currentProfile.role === 'secretariat_head') {
+    if (!DELEGATOR_ROLES.includes(currentProfile.role)) {
       document.getElementById('adminUnitsCard').classList.add('hidden');
       document.getElementById('adminUsersCard').classList.add('hidden');
+    } else {
+      document.getElementById('adminUnitsCard').classList.remove('hidden');
+      document.getElementById('adminUsersCard').classList.remove('hidden');
+      if (currentProfile.role !== 'super_admin') {
+        const superOpt = document.querySelector('#profRole option[value="super_admin"]');
+        if (superOpt) superOpt.remove();
+      }
     }
   }
 
@@ -1167,24 +1209,78 @@
     alert('تم إضافة الوحدة التنظيمية بنجاح');
   }
 
+  function setAuthFormMode(mode) {
+    const isNew = mode === 'new';
+    document.getElementById('newUserFormFields').classList.toggle('hidden', !isNew);
+    document.getElementById('uidUserFormFields').classList.toggle('hidden', isNew);
+    document.getElementById('modeNewUserBtn').className = isNew
+      ? 'px-3 py-1.5 rounded-lg brand-gradient text-white'
+      : 'px-3 py-1.5 rounded-lg text-slate-600';
+    document.getElementById('modeUidUserBtn').className = !isNew
+      ? 'px-3 py-1.5 rounded-lg brand-gradient text-white'
+      : 'px-3 py-1.5 rounded-lg text-slate-600';
+  }
+
   function toggleProfSecSelect() {
     const role = document.getElementById('profRole').value;
     document.getElementById('profSec').classList.toggle('hidden', role !== 'secretariat_head');
   }
 
-  async function saveUserProfile() {
-    const id = document.getElementById('profUid').value.trim();
-    const full_name = document.getElementById('profName').value.trim();
+  async function createAndAssignUser() {
+    const full_name = document.getElementById('newAccName').value.trim();
+    const email = document.getElementById('newAccEmail').value.trim();
+    const password = document.getElementById('newAccPass').value;
+    const phone = document.getElementById('newAccPhone').value.trim();
     const role = document.getElementById('profRole').value;
     const unit_id = document.getElementById('profUnit').value;
     const secretariat_id = role === 'secretariat_head' ? Number(document.getElementById('profSec').value) : null;
+
+    if (!full_name || !email || !password) {
+      return alert('يرجى إدخال الاسم الكامل والبريد الإلكتروني وكلمة المرور');
+    }
+
+    const { error } = await sb.rpc('admin_create_user_with_profile', {
+      p_email: email,
+      p_password: password,
+      p_full_name: full_name,
+      p_phone: phone,
+      p_role: role,
+      p_unit_id: unit_id,
+      p_secretariat_id: secretariat_id
+    });
+
+    if (error) return alert('تعذر إنشاء الحساب: ' + error.message);
+
+    document.getElementById('newAccName').value = '';
+    document.getElementById('newAccEmail').value = '';
+    document.getElementById('newAccPass').value = '';
+    document.getElementById('newAccPhone').value = '';
+
+    await renderAdminLists();
+    alert('تم إنشاء الحساب وتفعيل الصلاحية بنجاح ويمكن للمسؤول تسجيل الدخول فوراً');
+  }
+
+  async function saveUserProfileByUid() {
+    const id = document.getElementById('profUid').value.trim();
+    const full_name = document.getElementById('profNameUid').value.trim();
+    const role = document.getElementById('profRole').value;
+    const unit_id = document.getElementById('profUnit').value;
+    const secretariat_id = role === 'secretariat_head' ? Number(document.getElementById('profSec').value) : null;
+
     if (!id || !full_name) return alert('يرجى إدخال User UID والاسم الكامل');
     const { error } = await sb.from('profiles').upsert({ id, full_name, role, unit_id, secretariat_id, is_active: true });
     if (error) return alert('خطأ: ' + error.message);
+
     document.getElementById('profUid').value = '';
-    document.getElementById('profName').value = '';
-    renderAdminLists();
+    document.getElementById('profNameUid').value = '';
+    await renderAdminLists();
     alert('تم تفعيل صلاحية المستخدم بنجاح');
+  }
+
+  async function toggleProfileActive(userId, nextState) {
+    const { error } = await sb.from('profiles').update({ is_active: nextState }).eq('id', userId);
+    if (error) return alert(error.message);
+    await renderAdminLists();
   }
 
   async function renderAdminLists() {
@@ -1200,7 +1296,25 @@
     const { data: profs } = await sb.from('profiles').select('*').in('unit_id', accessibleIds);
     document.getElementById('profilesList').innerHTML = (profs || []).map(p => {
       const uName = allUnits.find(u => u.id === p.unit_id)?.name || '';
-      return `<div class="p-2.5 bg-slate-50 rounded-xl border text-xs flex justify-between"><span><strong>${p.full_name}</strong> - ${ROLE_LABELS[p.role] || p.role}</span><span class="text-sky-800 font-bold">${uName}</span></div>`;
+      const secText = p.secretariat_id ? ` - ${getSecName(p.secretariat_id)}` : '';
+      const activeBadge = p.is_active !== false
+        ? `<span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">نشط</span>`
+        : `<span class="text-[10px] bg-rose-100 text-rose-800 px-2 py-0.5 rounded-full font-bold">موقوف</span>`;
+      const toggleBtn = p.id !== currentUser.id
+        ? `<button type="button" onclick="toggleProfileActive('${p.id}', ${p.is_active === false})" class="text-[11px] font-bold px-2.5 py-1 rounded-lg ${p.is_active === false ? 'bg-emerald-600 text-white' : 'bg-rose-50 text-rose-600'}">${p.is_active === false ? 'تفعيل' : 'إيقاف'}</button>`
+        : '';
+
+      return `
+        <div class="p-2.5 bg-slate-50 rounded-xl border text-xs flex items-center justify-between gap-2 flex-wrap">
+          <div>
+            <strong>${p.full_name}</strong>
+            <span class="text-sky-900 font-bold">(${ROLE_LABELS[p.role] || p.role}${secText})</span>
+            ${activeBadge}
+            <div class="text-[11px] text-slate-500 mt-0.5">الوحدة: ${uName}</div>
+          </div>
+          ${toggleBtn}
+        </div>
+      `;
     }).join('');
   }
 
