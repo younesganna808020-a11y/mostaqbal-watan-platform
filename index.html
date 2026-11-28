@@ -25,6 +25,14 @@
         padding: 10mm !important;
         width: 100% !important;
       }
+      body.printing-member-card > :not(#memberCardPrintOverlay) {
+        display: none !important;
+      }
+      #memberCardPrintOverlay {
+        position: static !important;
+        background: #fff !important;
+        padding: 0 !important;
+      }
       @page { size: A4 portrait; margin: 8mm; }
     }
   </style>
@@ -498,10 +506,31 @@
     </div>
   </div>
 
-  <!-- 1. إضافة عضو / متطوع (بيانات تنظيمية واجتماعية وانتخابية كاملة) -->
+  <!-- 1. إضافة عضو / متطوع (بيانات كاملة + صورة شخصية + صورة البطاقة) -->
   <div id="memberModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-lg w-full p-5 space-y-3 max-h-[90vh] overflow-y-auto">
       <h3 class="font-extrabold text-slate-800 text-sm">بيانات العضو / المتطوع الكاملة</h3>
+
+      <!-- رفع الصورة الشخصية وصورة البطاقة -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 bg-slate-50 p-3 rounded-xl border border-slate-200">
+        <div>
+          <label class="block text-[11px] font-extrabold text-slate-700 mb-1">الصورة الشخصية</label>
+          <input id="mAvatarFile" type="file" accept="image/*" onchange="handleMemberPhotoSelect(event, 'avatar')" class="w-full border rounded-xl p-1.5 text-[11px] bg-white" />
+          <div class="mt-2 flex items-center gap-2">
+            <img id="mAvatarPreview" src="" alt="معاينة الصورة الشخصية" class="hidden w-14 h-14 rounded-xl object-cover border border-slate-300 bg-white" />
+            <button type="button" id="mClearAvatarBtn" onclick="clearMemberPhoto('avatar')" class="hidden text-[10px] text-rose-600 font-bold">إزالة الصورة</button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-extrabold text-slate-700 mb-1">صورة البطاقة الشخصية</label>
+          <input id="mNidImgFile" type="file" accept="image/*" onchange="handleMemberPhotoSelect(event, 'nid')" class="w-full border rounded-xl p-1.5 text-[11px] bg-white" />
+          <div class="mt-2 flex items-center gap-2">
+            <img id="mNidImgPreview" src="" alt="معاينة صورة البطاقة" class="hidden w-20 h-14 rounded-xl object-cover border border-slate-300 bg-white" />
+            <button type="button" id="mClearNidImgBtn" onclick="clearMemberPhoto('nid')" class="hidden text-[10px] text-rose-600 font-bold">إزالة البطاقة</button>
+          </div>
+        </div>
+      </div>
 
       <input id="mName" type="text" placeholder="الاسم الرباعي *" class="w-full border rounded-xl p-2.5 text-xs" />
 
@@ -575,6 +604,21 @@
         <button onclick="saveMember()" class="flex-1 brand-gradient text-white font-bold py-2.5 rounded-xl text-xs">حفظ</button>
         <button onclick="closeModal('memberModal')" class="px-4 bg-slate-100 text-slate-700 font-bold py-2.5 rounded-xl text-xs">إلغاء</button>
       </div>
+    </div>
+  </div>
+
+  <!-- نافذة عرض كارت بيانات العضو الكامل -->
+  <div id="memberCardPrintOverlay" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-4 md:p-6 space-y-4 max-h-[94vh] overflow-y-auto shadow-2xl">
+      <div class="flex items-center justify-between gap-2 no-print border-b pb-3">
+        <h3 class="font-extrabold text-slate-800 text-sm">كارت بيانات العضو التنظيمي</h3>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="printMemberCard()" class="brand-gradient text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow">طباعة الكارت / PDF</button>
+          <button type="button" onclick="closeMemberCardModal()" class="bg-slate-100 text-slate-700 text-xs font-bold px-3 py-2 rounded-xl">إغلاق</button>
+        </div>
+      </div>
+
+      <div id="memberCardSheet" class="border-2 border-blue-950 rounded-2xl p-4 md:p-5 bg-white space-y-4"></div>
     </div>
   </div>
 
@@ -682,6 +726,8 @@
   let casesData = [];
   let activeEventId = null;
   let deferredPrompt = null;
+  let currentMemberAvatarBase64 = null;
+  let currentMemberNidImgBase64 = null;
 
   const ROLE_LABELS = {
     super_admin: 'الأمانة المركزية / مدير عام',
@@ -711,6 +757,69 @@
     if (btnEl) {
       btnEl.textContent = isHidden ? '🙈' : '👁️';
       btnEl.setAttribute('aria-label', isHidden ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور');
+    }
+  }
+
+  function compressImageToDataUrl(file, maxWidth = 900, quality = 0.72) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+          const scale = img.width > maxWidth ? maxWidth / img.width : 1;
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.round(img.width * scale);
+          canvas.height = Math.round(img.height * scale);
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = reject;
+        img.src = ev.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function handleMemberPhotoSelect(e, kind) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const dataUrl = await compressImageToDataUrl(file, kind === 'nid' ? 1100 : 700, 0.75);
+      if (kind === 'avatar') {
+        currentMemberAvatarBase64 = dataUrl;
+        const prev = document.getElementById('mAvatarPreview');
+        prev.src = dataUrl;
+        prev.classList.remove('hidden');
+        document.getElementById('mClearAvatarBtn').classList.remove('hidden');
+      } else {
+        currentMemberNidImgBase64 = dataUrl;
+        const prev = document.getElementById('mNidImgPreview');
+        prev.src = dataUrl;
+        prev.classList.remove('hidden');
+        document.getElementById('mClearNidImgBtn').classList.remove('hidden');
+      }
+    } catch {
+      alert('تعذر قراءة الصورة، يرجى اختيار ملف صورة صالح.');
+    }
+  }
+
+  function clearMemberPhoto(kind) {
+    if (kind === 'avatar') {
+      currentMemberAvatarBase64 = null;
+      document.getElementById('mAvatarFile').value = '';
+      const prev = document.getElementById('mAvatarPreview');
+      prev.src = '';
+      prev.classList.add('hidden');
+      document.getElementById('mClearAvatarBtn').classList.add('hidden');
+    } else {
+      currentMemberNidImgBase64 = null;
+      document.getElementById('mNidImgFile').value = '';
+      const prev = document.getElementById('mNidImgPreview');
+      prev.src = '';
+      prev.classList.add('hidden');
+      document.getElementById('mClearNidImgBtn').classList.add('hidden');
     }
   }
 
@@ -1192,26 +1301,116 @@
         m.commitment_status ? `الالتزام: ${m.commitment_status}` : ''
       ].filter(Boolean).join(' | ');
 
+      const avatarThumb = m.avatar_url
+        ? `<img src="${m.avatar_url}" alt="${m.full_name}" class="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0" />`
+        : `<div class="w-12 h-12 rounded-xl bg-blue-950 text-amber-400 font-extrabold text-xs flex items-center justify-center shrink-0">م و</div>`;
+
       return `
         <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex items-start justify-between gap-2">
-          <div class="space-y-1">
-            <div class="flex items-center gap-2 flex-wrap">
-              <h4 class="font-extrabold text-sm text-slate-800">${m.full_name}</h4>
-              <span class="text-[10px] bg-sky-100 text-sky-900 font-bold px-2 py-0.5 rounded-full">${m.position || 'عضو'}</span>
-              <span class="text-[10px] bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-full">${secName}</span>
-              ${m.membership_status ? `<span class="text-[10px] bg-emerald-100 text-emerald-900 font-bold px-2 py-0.5 rounded-full">${m.membership_status}</span>` : ''}
+          <div class="flex items-start gap-2.5">
+            ${avatarThumb}
+            <div class="space-y-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                <h4 class="font-extrabold text-sm text-slate-800">${m.full_name}</h4>
+                <span class="text-[10px] bg-sky-100 text-sky-900 font-bold px-2 py-0.5 rounded-full">${m.position || 'عضو'}</span>
+                <span class="text-[10px] bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-full">${secName}</span>
+                ${m.membership_status ? `<span class="text-[10px] bg-emerald-100 text-emerald-900 font-bold px-2 py-0.5 rounded-full">${m.membership_status}</span>` : ''}
+              </div>
+              <p class="text-xs text-slate-600">📞 ${m.phone || '-'} ${m.national_id ? `| 🪪 ${m.national_id}` : ''} ${m.address ? `| 📍 ${m.address}` : ''} | 🏢 ${unitName}</p>
+              ${extraMeta ? `<p class="text-[11px] text-slate-500">${extraMeta}</p>` : ''}
+              ${m.notes ? `<p class="text-[11px] text-sky-900 bg-sky-50 px-2 py-1 rounded-lg">ملاحظات: ${m.notes}</p>` : ''}
             </div>
-            <p class="text-xs text-slate-600">📞 ${m.phone || '-'} ${m.national_id ? `| 🪪 ${m.national_id}` : ''} ${m.address ? `| 📍 ${m.address}` : ''} | 🏢 ${unitName}</p>
-            ${extraMeta ? `<p class="text-[11px] text-slate-500">${extraMeta}</p>` : ''}
-            ${m.notes ? `<p class="text-[11px] text-sky-900 bg-sky-50 px-2 py-1 rounded-lg">ملاحظات: ${m.notes}</p>` : ''}
           </div>
-          <button onclick="deleteMember('${m.id}')" class="text-rose-500 text-xs font-bold px-2 py-1 hover:bg-rose-50 rounded-lg shrink-0">حذف</button>
+          <div class="flex flex-col gap-1 shrink-0">
+            <button type="button" onclick="openMemberCardModal('${m.id}')" class="brand-gradient text-white text-[11px] font-bold px-2.5 py-1 rounded-lg shadow">عرض الكارت</button>
+            <button type="button" onclick="deleteMember('${m.id}')" class="text-rose-500 text-[11px] font-bold px-2.5 py-1 hover:bg-rose-50 rounded-lg">حذف</button>
+          </div>
         </div>
       `;
     }).join('');
   }
 
+  function openMemberCardModal(memberId) {
+    const m = membersData.find(x => String(x.id) === String(memberId));
+    if (!m) return;
+
+    const unit = allUnits.find(u => u.id === m.unit_id);
+    const chain = getUnitChain(m.unit_id);
+    const secName = getSecName(m.secretariat_id);
+
+    const avatarHtml = m.avatar_url
+      ? `<img src="${m.avatar_url}" alt="${m.full_name}" class="w-24 h-28 rounded-2xl object-cover border-2 border-blue-950 shadow-sm bg-slate-50" />`
+      : `<div class="w-24 h-28 rounded-2xl bg-slate-100 border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-[11px] font-bold text-slate-400 text-center p-2">لا توجد صورة شخصية</div>`;
+
+    const nidCardHtml = m.national_id_image_url
+      ? `<img src="${m.national_id_image_url}" alt="صورة البطاقة" class="w-full max-h-52 object-contain rounded-xl border border-slate-300 bg-slate-50 p-1" />`
+      : `<div class="w-full h-32 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-xs font-bold text-slate-400">لم يتم إرفاق صورة البطاقة الشخصية</div>`;
+
+    document.getElementById('memberCardSheet').innerHTML = `
+      <div class="border-b-2 border-blue-950 pb-3 flex items-center justify-between gap-2">
+        <div>
+          <div class="text-[11px] font-extrabold text-sky-800">حزب مستقبل وطن — « كلنا نعمل من أجل مصر »</div>
+          <h4 class="text-base font-extrabold text-blue-950 mt-0.5">بطاقة بيانات عضو / كادر تنظيمي</h4>
+          <p class="text-[11px] text-slate-500 font-bold">${chain.map(c => c.name).join(' / ') || (unit?.name || '')}</p>
+        </div>
+        <span class="bg-amber-400 text-slate-950 text-xs font-extrabold px-3 py-1 rounded-full">${m.position || 'عضو'}</span>
+      </div>
+
+      <div class="flex flex-col sm:flex-row items-start gap-4">
+        <div class="mx-auto sm:mx-0 shrink-0 text-center space-y-1">
+          ${avatarHtml}
+          <div class="text-[10px] font-bold text-slate-500">رقم العضوية: ${m.membership_number || '-'}</div>
+        </div>
+
+        <div class="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+          <div class="bg-slate-50 p-2.5 rounded-xl border"><span class="text-slate-500 font-bold">الاسم الرباعي:</span> <strong class="text-slate-900">${m.full_name}</strong></div>
+          <div class="bg-slate-50 p-2.5 rounded-xl border"><span class="text-slate-500 font-bold">الرقم القومي:</span> <strong class="text-slate-900">${m.national_id || '-'}</strong></div>
+          <div class="bg-slate-50 p-2.5 rounded-xl border"><span class="text-slate-500 font-bold">رقم الهاتف:</span> <strong class="text-slate-900">${m.phone || '-'}</strong></div>
+          <div class="bg-slate-50 p-2.5 rounded-xl border"><span class="text-slate-500 font-bold">الأمانة النوعية:</span> <strong class="text-slate-900">${secName}</strong></div>
+          <div class="bg-slate-50 p-2.5 rounded-xl border"><span class="text-slate-500 font-bold">النوع:</span> <strong class="text-slate-900">${m.gender || '-'}</strong></div>
+          <div class="bg-slate-50 p-2.5 rounded-xl border"><span class="text-slate-500 font-bold">تاريخ الميلاد:</span> <strong class="text-slate-900">${m.birth_date || '-'}</strong></div>
+          <div class="bg-slate-50 p-2.5 rounded-xl border"><span class="text-slate-500 font-bold">المؤهل الدراسي:</span> <strong class="text-slate-900">${m.education || '-'}</strong></div>
+          <div class="bg-slate-50 p-2.5 rounded-xl border"><span class="text-slate-500 font-bold">المهنة / جهة العمل:</span> <strong class="text-slate-900">${m.job_title || '-'}</strong></div>
+          <div class="bg-slate-50 p-2.5 rounded-xl border"><span class="text-slate-500 font-bold">حالة العضوية:</span> <strong class="text-slate-900">${m.membership_status || '-'}</strong></div>
+          <div class="bg-slate-50 p-2.5 rounded-xl border"><span class="text-slate-500 font-bold">موقف الالتزام:</span> <strong class="text-slate-900">${m.commitment_status || '-'}</strong></div>
+          <div class="bg-slate-50 p-2.5 rounded-xl border"><span class="text-slate-500 font-bold">اللجنة الانتخابية:</span> <strong class="text-slate-900">${m.electoral_committee || '-'}</strong></div>
+          <div class="bg-slate-50 p-2.5 rounded-xl border"><span class="text-slate-500 font-bold">الرقم الانتخابي:</span> <strong class="text-slate-900">${m.electoral_serial || '-'}</strong></div>
+          <div class="bg-slate-50 p-2.5 rounded-xl border"><span class="text-slate-500 font-bold">تاريخ الانضمام:</span> <strong class="text-slate-900">${m.joined_at || '-'}</strong></div>
+          <div class="bg-slate-50 p-2.5 rounded-xl border"><span class="text-slate-500 font-bold">الوحدة:</span> <strong class="text-slate-900">${unit?.name || '-'}</strong></div>
+          <div class="bg-slate-50 p-2.5 rounded-xl border sm:col-span-2"><span class="text-slate-500 font-bold">العنوان / المربع السكني:</span> <strong class="text-slate-900">${m.address || '-'}</strong></div>
+          ${m.notes ? `<div class="bg-sky-50 p-2.5 rounded-xl border border-sky-200 sm:col-span-2"><span class="text-sky-900 font-bold">ملاحظات:</span> <span class="text-slate-800">${m.notes}</span></div>` : ''}
+        </div>
+      </div>
+
+      <div class="space-y-1.5 pt-1">
+        <div class="text-xs font-extrabold text-blue-950">صورة البطاقة الشخصية للعضو</div>
+        ${nidCardHtml}
+      </div>
+
+      <div class="pt-2 border-t border-slate-200 flex items-center justify-between text-[11px] font-bold text-slate-500">
+        <span>تطوير: ${DEVELOPER_NAME}</span>
+        <span>${new Date().toLocaleDateString('ar-EG')}</span>
+      </div>
+    `;
+
+    document.getElementById('memberCardPrintOverlay').classList.remove('hidden');
+  }
+
+  function closeMemberCardModal() {
+    document.getElementById('memberCardPrintOverlay').classList.add('hidden');
+  }
+
+  function printMemberCard() {
+    document.body.classList.add('printing-member-card');
+    window.print();
+    setTimeout(() => {
+      document.body.classList.remove('printing-member-card');
+    }, 300);
+  }
+
   function openMemberModal() {
+    clearMemberPhoto('avatar');
+    clearMemberPhoto('nid');
     document.getElementById('mName').value = '';
     document.getElementById('mPhone').value = '';
     document.getElementById('mNid').value = '';
@@ -1253,6 +1452,8 @@
       commitment_status: document.getElementById('mCommitment').value,
       joined_at: document.getElementById('mJoinedAt').value || null,
       notes: document.getElementById('mNotes').value.trim(),
+      avatar_url: currentMemberAvatarBase64,
+      national_id_image_url: currentMemberNidImgBase64,
       created_by: currentUser.id
     };
     if (!payload.full_name || !payload.phone) return alert('الاسم ورقم الهاتف مطلوبان');
