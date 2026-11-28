@@ -506,13 +506,13 @@
     </div>
   </div>
 
-  <!-- 1. إضافة عضو / متطوع (بيانات كاملة + صورة شخصية + صورة البطاقة) -->
+  <!-- 1. إضافة عضو / متطوع (بيانات كاملة + صورة شخصية + صورة البطاقة وجه وظهر) -->
   <div id="memberModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-lg w-full p-5 space-y-3 max-h-[90vh] overflow-y-auto">
       <h3 class="font-extrabold text-slate-800 text-sm">بيانات العضو / المتطوع الكاملة</h3>
 
-      <!-- رفع الصورة الشخصية وصورة البطاقة -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 bg-slate-50 p-3 rounded-xl border border-slate-200">
+      <!-- رفع الصورة الشخصية وصورة البطاقة (وجه وظهر) -->
+      <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-3">
         <div>
           <label class="block text-[11px] font-extrabold text-slate-700 mb-1">الصورة الشخصية</label>
           <input id="mAvatarFile" type="file" accept="image/*" onchange="handleMemberPhotoSelect(event, 'avatar')" class="w-full border rounded-xl p-1.5 text-[11px] bg-white" />
@@ -522,12 +522,23 @@
           </div>
         </div>
 
-        <div>
-          <label class="block text-[11px] font-extrabold text-slate-700 mb-1">صورة البطاقة الشخصية</label>
-          <input id="mNidImgFile" type="file" accept="image/*" onchange="handleMemberPhotoSelect(event, 'nid')" class="w-full border rounded-xl p-1.5 text-[11px] bg-white" />
-          <div class="mt-2 flex items-center gap-2">
-            <img id="mNidImgPreview" src="" alt="معاينة صورة البطاقة" class="hidden w-20 h-14 rounded-xl object-cover border border-slate-300 bg-white" />
-            <button type="button" id="mClearNidImgBtn" onclick="clearMemberPhoto('nid')" class="hidden text-[10px] text-rose-600 font-bold">إزالة البطاقة</button>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 border-t border-slate-200">
+          <div>
+            <label class="block text-[11px] font-extrabold text-slate-700 mb-1">صورة البطاقة — الوجه</label>
+            <input id="mNidFrontFile" type="file" accept="image/*" onchange="handleMemberPhotoSelect(event, 'nid_front')" class="w-full border rounded-xl p-1.5 text-[11px] bg-white" />
+            <div class="mt-2 flex items-center gap-2">
+              <img id="mNidFrontPreview" src="" alt="معاينة وجه البطاقة" class="hidden w-20 h-14 rounded-xl object-cover border border-slate-300 bg-white" />
+              <button type="button" id="mClearNidFrontBtn" onclick="clearMemberPhoto('nid_front')" class="hidden text-[10px] text-rose-600 font-bold">إزالة الوجه</button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-extrabold text-slate-700 mb-1">صورة البطاقة — الظهر</label>
+            <input id="mNidBackFile" type="file" accept="image/*" onchange="handleMemberPhotoSelect(event, 'nid_back')" class="w-full border rounded-xl p-1.5 text-[11px] bg-white" />
+            <div class="mt-2 flex items-center gap-2">
+              <img id="mNidBackPreview" src="" alt="معاينة ظهر البطاقة" class="hidden w-20 h-14 rounded-xl object-cover border border-slate-300 bg-white" />
+              <button type="button" id="mClearNidBackBtn" onclick="clearMemberPhoto('nid_back')" class="hidden text-[10px] text-rose-600 font-bold">إزالة الظهر</button>
+            </div>
           </div>
         </div>
       </div>
@@ -727,7 +738,8 @@
   let activeEventId = null;
   let deferredPrompt = null;
   let currentMemberAvatarBase64 = null;
-  let currentMemberNidImgBase64 = null;
+  let currentMemberNidFrontBase64 = null;
+  let currentMemberNidBackBase64 = null;
 
   const ROLE_LABELS = {
     super_admin: 'الأمانة المركزية / مدير عام',
@@ -786,19 +798,26 @@
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const dataUrl = await compressImageToDataUrl(file, kind === 'nid' ? 1100 : 700, 0.75);
+      const isNid = kind === 'nid_front' || kind === 'nid_back';
+      const dataUrl = await compressImageToDataUrl(file, isNid ? 1100 : 700, 0.75);
       if (kind === 'avatar') {
         currentMemberAvatarBase64 = dataUrl;
         const prev = document.getElementById('mAvatarPreview');
         prev.src = dataUrl;
         prev.classList.remove('hidden');
         document.getElementById('mClearAvatarBtn').classList.remove('hidden');
-      } else {
-        currentMemberNidImgBase64 = dataUrl;
-        const prev = document.getElementById('mNidImgPreview');
+      } else if (kind === 'nid_front') {
+        currentMemberNidFrontBase64 = dataUrl;
+        const prev = document.getElementById('mNidFrontPreview');
         prev.src = dataUrl;
         prev.classList.remove('hidden');
-        document.getElementById('mClearNidImgBtn').classList.remove('hidden');
+        document.getElementById('mClearNidFrontBtn').classList.remove('hidden');
+      } else if (kind === 'nid_back') {
+        currentMemberNidBackBase64 = dataUrl;
+        const prev = document.getElementById('mNidBackPreview');
+        prev.src = dataUrl;
+        prev.classList.remove('hidden');
+        document.getElementById('mClearNidBackBtn').classList.remove('hidden');
       }
     } catch {
       alert('تعذر قراءة الصورة، يرجى اختيار ملف صورة صالح.');
@@ -813,13 +832,20 @@
       prev.src = '';
       prev.classList.add('hidden');
       document.getElementById('mClearAvatarBtn').classList.add('hidden');
-    } else {
-      currentMemberNidImgBase64 = null;
-      document.getElementById('mNidImgFile').value = '';
-      const prev = document.getElementById('mNidImgPreview');
+    } else if (kind === 'nid_front') {
+      currentMemberNidFrontBase64 = null;
+      document.getElementById('mNidFrontFile').value = '';
+      const prev = document.getElementById('mNidFrontPreview');
       prev.src = '';
       prev.classList.add('hidden');
-      document.getElementById('mClearNidImgBtn').classList.add('hidden');
+      document.getElementById('mClearNidFrontBtn').classList.add('hidden');
+    } else if (kind === 'nid_back') {
+      currentMemberNidBackBase64 = null;
+      document.getElementById('mNidBackFile').value = '';
+      const prev = document.getElementById('mNidBackPreview');
+      prev.src = '';
+      prev.classList.add('hidden');
+      document.getElementById('mClearNidBackBtn').classList.add('hidden');
     }
   }
 
@@ -1342,9 +1368,16 @@
       ? `<img src="${m.avatar_url}" alt="${m.full_name}" class="w-24 h-28 rounded-2xl object-cover border-2 border-blue-950 shadow-sm bg-slate-50" />`
       : `<div class="w-24 h-28 rounded-2xl bg-slate-100 border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-[11px] font-bold text-slate-400 text-center p-2">لا توجد صورة شخصية</div>`;
 
-    const nidCardHtml = m.national_id_image_url
-      ? `<img src="${m.national_id_image_url}" alt="صورة البطاقة" class="w-full max-h-52 object-contain rounded-xl border border-slate-300 bg-slate-50 p-1" />`
-      : `<div class="w-full h-32 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-xs font-bold text-slate-400">لم يتم إرفاق صورة البطاقة الشخصية</div>`;
+    const frontImg = m.national_id_image_url || '';
+    const backImg = m.national_id_back_url || '';
+
+    const nidFrontHtml = frontImg
+      ? `<img src="${frontImg}" alt="وجه البطاقة الشخصية" class="w-full max-h-48 object-contain rounded-xl border border-slate-300 bg-slate-50 p-1" />`
+      : `<div class="w-full h-32 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-xs font-bold text-slate-400">لم يتم إرفاق وجه البطاقة</div>`;
+
+    const nidBackHtml = backImg
+      ? `<img src="${backImg}" alt="ظهر البطاقة الشخصية" class="w-full max-h-48 object-contain rounded-xl border border-slate-300 bg-slate-50 p-1" />`
+      : `<div class="w-full h-32 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-xs font-bold text-slate-400">لم يتم إرفاق ظهر البطاقة</div>`;
 
     document.getElementById('memberCardSheet').innerHTML = `
       <div class="border-b-2 border-blue-950 pb-3 flex items-center justify-between gap-2">
@@ -1382,9 +1415,15 @@
         </div>
       </div>
 
-      <div class="space-y-1.5 pt-1">
-        <div class="text-xs font-extrabold text-blue-950">صورة البطاقة الشخصية للعضو</div>
-        ${nidCardHtml}
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+        <div class="space-y-1.5">
+          <div class="text-xs font-extrabold text-blue-950">وجه البطاقة الشخصية</div>
+          ${nidFrontHtml}
+        </div>
+        <div class="space-y-1.5">
+          <div class="text-xs font-extrabold text-blue-950">ظهر البطاقة الشخصية</div>
+          ${nidBackHtml}
+        </div>
       </div>
 
       <div class="pt-2 border-t border-slate-200 flex items-center justify-between text-[11px] font-bold text-slate-500">
@@ -1410,7 +1449,8 @@
 
   function openMemberModal() {
     clearMemberPhoto('avatar');
-    clearMemberPhoto('nid');
+    clearMemberPhoto('nid_front');
+    clearMemberPhoto('nid_back');
     document.getElementById('mName').value = '';
     document.getElementById('mPhone').value = '';
     document.getElementById('mNid').value = '';
@@ -1453,14 +1493,35 @@
       joined_at: document.getElementById('mJoinedAt').value || null,
       notes: document.getElementById('mNotes').value.trim(),
       avatar_url: currentMemberAvatarBase64,
-      national_id_image_url: currentMemberNidImgBase64,
+      national_id_image_url: currentMemberNidFrontBase64,
+      national_id_back_url: currentMemberNidBackBase64,
       created_by: currentUser.id
     };
-    if (!payload.full_name || !payload.phone) return alert('الاسم ورقم الهاتف مطلوبان');
-    const { error } = await sb.from('members').insert(payload);
-    if (error) return alert('حدث خطأ أثناء الحفظ: ' + error.message);
-    closeModal('memberModal');
-    await loadScopeData();
+
+    if (!payload.full_name || !payload.phone) {
+      return alert('الاسم ورقم الهاتف مطلوبان');
+    }
+
+    let candidatePayload = { ...payload };
+    let lastError = null;
+
+    for (let attempt = 0; attempt < 20; attempt++) {
+      const { error } = await sb.from('members').insert(candidatePayload);
+      if (!error) {
+        closeModal('memberModal');
+        await loadScopeData();
+        return;
+      }
+      lastError = error;
+      const missingColMatch = error.message?.match(/Could not find the '([^']+)' column/i);
+      if (missingColMatch && missingColMatch[1] in candidatePayload) {
+        delete candidatePayload[missingColMatch[1]];
+        continue;
+      }
+      break;
+    }
+
+    alert('حدث خطأ أثناء الحفظ: ' + (lastError?.message || 'خطأ غير متوقع'));
   }
 
   async function deleteMember(id) {
